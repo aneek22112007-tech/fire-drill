@@ -26,3 +26,7 @@ Anything not confirmed by those docs stays behind `adapters/` and is implemented
 
 ## Milestones
 
+### M1 — Skeleton and bus
+
+Package, CLI entry, pydantic models, and a SQLite `LocalAdapter` that stores author, role, timestamp, thread, and channel. Test: post three messages and read them back in commit order.
+

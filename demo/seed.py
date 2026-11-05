@@ -13,3 +13,10 @@ from firedrill.simulate import SEED, build_events, run_demo
 __all__ = ["SEED", "build_events", "run_demo"]
 
 
+def main() -> None:
+    headline = run_demo(default_paths(), offline=True)
+    print(headline)
+
+
+if __name__ == "__main__":
+    main()

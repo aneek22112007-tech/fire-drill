@@ -452,3 +452,27 @@ def _unlink_db(path: Path) -> None:
             candidate.unlink()
 
 
+def _sample_tests(repo: Path) -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            "--rootdir",
+            str(repo),
+            "-c",
+            str(repo / "pytest.ini"),
+            str(repo / "tests"),
+        ],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise RuntimeError(
+            "sample repo tests failed after the drill\n"
+            + completed.stdout
+            + completed.stderr
+        )

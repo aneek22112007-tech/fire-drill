@@ -28,3 +28,12 @@ class ApprovalRequest(BaseModel):
         return self.model_dump()
 
 
+class Decision(BaseModel):
+    request_id: str
+    reviewer: str
+    action: DecisionAction
+    reason: str = ""
+    timestamp: str
+    latency_s: float = Field(ge=0)
+
+

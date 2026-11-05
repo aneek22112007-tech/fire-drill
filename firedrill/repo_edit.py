@@ -85,3 +85,14 @@ def apply_action(repo: Path, action: Action) -> None:
     raise ValueError(f"unknown action {action.kind}")
 
 
+def _snapshot(repo: Path) -> dict[str, str]:
+    files: dict[str, str] = {}
+    for path in sorted(repo.rglob("*")):
+        if not path.is_file():
+            continue
+        if "__pycache__" in path.parts or path.suffix == ".pyc":
+            continue
+        files[path.relative_to(repo).as_posix()] = path.read_text(encoding="utf-8")
+    return files
+
+

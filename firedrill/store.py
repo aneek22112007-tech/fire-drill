@@ -87,3 +87,8 @@ class AuditorStore:
             ).fetchone()
         return None if row is None else str(row["flaw_id"])
 
+    def mappings(self) -> dict[str, str]:
+        with self._lock:
+            rows = self._conn.execute("SELECT request_id, flaw_id FROM mappings").fetchall()
+        return {row["request_id"]: row["flaw_id"] for row in rows}
+

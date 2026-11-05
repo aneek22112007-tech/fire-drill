@@ -29,3 +29,9 @@ def fmt_rate(value: float | None) -> str:
     return f"{value * 100:.1f}%"
 
 
+def fmt_corr(value: float | None) -> str:
+    if value is None:
+        return "n/a"
+    return f"{value:.3f}"
+
+

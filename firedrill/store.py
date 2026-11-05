@@ -64,3 +64,6 @@ class AuditorStore:
         )
         self._conn.commit()
 
+    def close(self) -> None:
+        self._conn.close()
+

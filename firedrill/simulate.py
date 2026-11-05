@@ -97,3 +97,161 @@ def write_events(path: Path, events: list[dict[str, object]]) -> None:
     path.write_text(rendered, encoding="utf-8")
 
 
+def build_events(paths: DrillPaths, *, offline: bool, seed: int = SEED) -> list[dict[str, object]]:
+    flaws = load_library(paths.library)
+    if len(flaws) != CANARY_ITEMS:
+        raise RuntimeError(f"canary library has {len(flaws)} flaws, expected {CANARY_ITEMS}")
+    by_id = {flaw.id: flaw for flaw in flaws}
+    rng = random.Random(seed)
+    slots = set(rng.sample(range(TOTAL_ITEMS), CANARY_ITEMS))
+    order = [flaw.id for flaw in flaws]
+    rng.shuffle(order)
+    flaw_at = {slot: order[index] for index, slot in enumerate(sorted(slots))}
+    used: set[str] = set()
+
+    def next_id() -> str:
+        while True:
+            request_id = f"fd-{rng.getrandbits(32):08x}"
+            if request_id not in used:
+                used.add(request_id)
+                return request_id
+
+    llm = LLM(offline=True if offline else None)
+    version = read_version(paths.sample_repo)
+    kind_i = 0
+    flag_n = 0
+    fn_n = 0
+    real_i = 0
+    items: list[Item] = []
+    for slot in range(TOTAL_ITEMS):
+        if slot in flaw_at:
+            flaw = by_id[flaw_at[slot]]
+            items.append(
+                Item(
+                    request_id=next_id(),
+                    is_canary=True,
+                    risk=flaw.risk,
+                    complexity=flaw.complexity,
+                    public_summary=flaw.template.format(change=flaw.summary),
+                    diff=flaw.diff.strip() + "\n",
+                    change=flaw.summary,
+                    action=None,
+                    flaw_id=flaw.id,
+                )
+            )
+            continue
+        action = _real_action(
+            real_i,
+            version=version,
+            kind_i=kind_i,
+            flag_n=flag_n,
+            fn_n=fn_n,
+        )
+        version = action.version or version
+        if action.kind == "version_bump":
+            kind_i += 1
+        elif action.kind == "add_function":
+            kind_i += 1
+            fn_n += 1
+        elif action.key != "max_connections":
+            kind_i += 1
+            flag_n += 1
+        change, risk, complexity = describe_action(action)
+        change = llm.complete(_LLM_SYSTEM, change)
+        items.append(
+            Item(
+                request_id=next_id(),
+                is_canary=False,
+                risk=risk,
+                complexity=complexity,
+                public_summary=voiced(change),
+                diff="",
+                change=change,
+                action=action.model_dump(mode="json"),
+                flaw_id=None,
+            )
+        )
+        real_i += 1
+    if real_i != REAL_ITEMS:
+        raise RuntimeError(f"built {real_i} real items, expected {REAL_ITEMS}")
+
+    profiles = {row["id"]: row["profile"] for row in REVIEWERS}
+    reviewers = [row["id"] for row in REVIEWERS]
+    last_ts: dict[str, str | None] = {reviewer: None for reviewer in reviewers}
+    latencies: dict[str, list[float]] = {reviewer: [] for reviewer in reviewers}
+    needs_explain: set[str] = set()
+    cursor = 0
+    events: list[dict[str, object]] = [
+        {
+            "kind": "meta",
+            "seed": seed,
+            "salt": demo_salt(seed),
+            "key_b64": base64.b64encode(demo_key_bytes(seed)).decode("ascii"),
+        }
+    ]
+    clock = BASE_TS
+    for reviewer in reviewers:
+        events.append({"kind": "optin", "reviewer": reviewer, "ts": clock})
+        clock = add_seconds(clock, 1)
+    events.append({"kind": "start", "salt": demo_salt(seed), "ts": clock})
+    clock = add_seconds(clock, 1)
+
+    def emit(group: list[Item], note_rule: str | None, at: str) -> str:
+        nonlocal cursor
+        if note_rule == "batch" and len(group) >= 2:
+            note = note_low_risk_batch(len(group))
+            events.append(_note(note.rule, note.reviewer, note.reason, at))
+            at = add_seconds(at, 0.05)
+        posted: list[tuple[Item, str]] = []
+        for item in group:
+            events.append(_post(item, at))
+            posted.append((item, at))
+            at = add_seconds(at, 0.05)
+        for item, post_ts in posted:
+            if note_rule == "each":
+                if item.risk == "high":
+                    reviewer = route_high_risk(reviewers, last_ts)
+                    note = note_high_risk(reviewers, last_ts)
+                else:
+                    reviewer = reviewers[cursor % len(reviewers)]
+                    cursor += 1
+                    note = note_round_robin(reviewer)
+                events.append(_note(note.rule, note.reviewer, note.reason, at))
+                at = add_seconds(at, 0.05)
+            else:
+                reviewer = reviewers[cursor % len(reviewers)]
+                cursor += 1
+            at = _decide(
+                item,
+                reviewer,
+                post_ts,
+                at,
+                events,
+                profiles,
+                last_ts,
+                latencies,
+                needs_explain,
+            )
+        return at
+
+    pending: list[Item] = []
+    for item in items:
+        if item.risk == "low":
+            pending.append(item)
+            released = take_low_risk_batch(pending, BATCH_SIZE)
+            if released:
+                clock = emit(released, "batch", clock)
+            continue
+        if pending:
+            held = list(pending)
+            pending.clear()
+            clock = emit(held, "batch" if len(held) >= 2 else None, clock)
+        clock = emit([item], "each", clock)
+    if pending:
+        held = list(pending)
+        pending.clear()
+        clock = emit(held, "batch" if len(held) >= 2 else None, clock)
+    events.append({"kind": "reveal", "ts": clock})
+    return events
+
+

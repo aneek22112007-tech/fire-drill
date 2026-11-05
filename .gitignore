@@ -15,3 +15,8 @@ report.md
 sample_repo/**/__pycache__/
 *.log
 .DS_Store
+
+# Only the sanitized public report artifacts are deployable.
+!public/data/
+!public/data/metrics.json
+!public/report.md

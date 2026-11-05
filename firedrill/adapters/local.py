@@ -131,3 +131,12 @@ class LocalAdapter:
             )
             self._conn.commit()
 
+    def reactions_for(self, message_id: str) -> list[tuple[str, str]]:
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT user, emoji FROM reactions WHERE message_id = ? ORDER BY id ASC",
+                (message_id,),
+            ).fetchall()
+        return [(row["user"], row["emoji"]) for row in rows]
+
+

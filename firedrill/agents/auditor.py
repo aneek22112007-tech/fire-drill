@@ -9,3 +9,6 @@ class Auditor:
     def __init__(self, session: DrillSession) -> None:
         self._session = session
 
+    def start(self, salt: str, ts: str) -> str:
+        return self._session.start(salt, ts)
+

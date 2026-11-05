@@ -205,3 +205,11 @@ class AuditorStore:
             rows = self._conn.execute("SELECT * FROM adaptations ORDER BY id").fetchall()
         return [dict(row) for row in rows]
 
+    def record_optin(self, reviewer: str, ts: str) -> None:
+        with self._lock:
+            self._conn.execute(
+                "INSERT OR REPLACE INTO consent (reviewer, ts) VALUES (?, ?)",
+                (reviewer, ts),
+            )
+            self._conn.commit()
+

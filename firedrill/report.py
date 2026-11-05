@@ -148,3 +148,60 @@ def write_report(store: AuditorStore, path: Path) -> str:
     return headline(metrics)
 
 
+def render_dashboard(store: AuditorStore) -> str:
+    metrics = compute_metrics(store.requests(), store.decisions())
+    adaptations = store.adaptations()
+    rows = []
+    for mode, rate in metrics.by_mast.items():
+        rows.append(
+            f"<tr><td>{html.escape(mode)}</td><td>{html.escape(fmt_rate(rate))}</td></tr>"
+        )
+    mast_table = "\n".join(rows) or "<tr><td colspan='2'>No canaries were classified.</td></tr>"
+    flags = (
+        ", ".join(html.escape(name) for name in metrics.flat_reviewers)
+        or "none"
+    )
+    adaptation_items = "\n".join(
+        f"<li><code>{html.escape(str(note['rule']))}</code> "
+        f"{html.escape(str(note['reason']))}</li>"
+        for note in adaptations
+    ) or "<li>No adaptations.</li>"
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fire Drill dashboard</title>
+<style>
+body {{ font-family: Georgia, serif; margin: 2rem auto; max-width: 46rem; color: #1c1917; }}
+h1 {{ font-size: 1.6rem; }}
+.headline {{ font-size: 1.15rem; }}
+table {{ border-collapse: collapse; width: 100%; }}
+td, th {{ border-bottom: 1px solid #d6d3d1; text-align: left; padding: 0.35rem; }}
+.limits {{ background: #f5f5f4; padding: 0.8rem 1rem; }}
+</style>
+</head>
+<body>
+<h1>Fire Drill</h1>
+<p class="headline">{html.escape(headline(metrics))}</p>
+<h2>Canaries</h2>
+<p>Injected {metrics.canaries_injected}. Caught {metrics.canaries_caught}. Catch rate {html.escape(fmt_rate(metrics.catch_rate))}.</p>
+<h2>Median times</h2>
+<p>Canaries {html.escape(fmt_seconds(metrics.median_canary_s))}s. Real items {html.escape(fmt_seconds(metrics.median_real_s))}s. Correlation with complexity {html.escape(fmt_corr(metrics.correlation))}.</p>
+<h2>Catch rate by MAST mode</h2>
+<table>
+<tr><th>Mode</th><th>Catch rate</th></tr>
+{mast_table}
+</table>
+<h2>Flags</h2>
+<p>{flags}</p>
+<h2>Adaptations</h2>
+<ul>
+{adaptation_items}
+</ul>
+<h2>Recommended next change</h2>
+<p>{html.escape(recommend(metrics))}</p>
+<h2>Limits</h2>
+<p class="limits">{html.escape(LIMITS)}</p>
+</body>
+</html>
+"""

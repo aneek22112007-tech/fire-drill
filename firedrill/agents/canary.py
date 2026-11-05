@@ -27,3 +27,26 @@ class Canary:
         self.bus = bus
         self._submit_mapping = submit_mapping
 
+    def post_flaw(
+        self,
+        flaw: Flaw,
+        *,
+        request_id: str | None = None,
+        ts: str | None = None,
+    ) -> ApprovalRequest:
+        request_id = request_id or new_request_id()
+        request = ApprovalRequest(
+            id=request_id,
+            summary=flaw.template.format(change=flaw.summary),
+            diff=flaw.diff.strip() + "\n",
+            risk=flaw.risk,
+            complexity=flaw.complexity,
+        )
+        self.bus.post(
+            author=CHANGE_AGENT,
+            role=CHANGE_ROLE,
+            body=format_approval(request),
+            ts=ts,
+        )
+        self._submit_mapping(request.id, flaw.id)
+        return request

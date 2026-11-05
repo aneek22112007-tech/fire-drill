@@ -80,3 +80,12 @@ class Action(BaseModel):
     test_body: str | None = None
 
 
+class RoomMessage(BaseModel):
+    seq: int
+    id: str
+    ts: str
+    author: str
+    role: str
+    thread_id: str | None = None
+    body: str
+    channel: str = "room"

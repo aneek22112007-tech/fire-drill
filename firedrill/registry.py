@@ -29,3 +29,21 @@ def sign_request(secret: bytes, request_id: str) -> str:
 
 
 class WorkerRegistry:
+    def __init__(self, db_path: Path, secret: bytes) -> None:
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self._secret = secret
+        self._lock = threading.Lock()
+        self._conn = sqlite3.connect(self.db_path, check_same_thread=False)
+        self._conn.row_factory = sqlite3.Row
+        self._conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS registry (
+                request_id TEXT PRIMARY KEY,
+                signature TEXT NOT NULL,
+                action_json TEXT NOT NULL
+            )
+            """
+        )
+        self._conn.commit()
+

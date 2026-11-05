@@ -250,3 +250,9 @@ class DrillSession:
             if decision.action in {"approve", "reject"}
         }
 
+    def _request(self, request_id: str) -> dict[str, object] | None:
+        for row in self.store.requests():
+            if row["id"] == request_id:
+                return row
+        return None
+

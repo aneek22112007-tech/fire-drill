@@ -15,3 +15,6 @@ class Auditor:
     def reveal(self, ts: str) -> str:
         return self._session.reveal(ts)
 
+    def command(self, reviewer: str, line: str, ts: str) -> str:
+        return self._session.command(reviewer, line, ts)
+

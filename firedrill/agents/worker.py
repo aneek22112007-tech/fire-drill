@@ -25,3 +25,31 @@ class Worker:
         self.bus = bus
         self.repo = Path(repo)
 
+    def propose(
+        self,
+        action: Action,
+        *,
+        summary: str,
+        risk: Risk,
+        complexity: int,
+        request_id: str | None = None,
+        ts: str | None = None,
+    ) -> ApprovalRequest:
+        request_id = request_id or new_request_id()
+        diff = preview_diff(self.repo, action)
+        self.registry.register(request_id, action)
+        request = ApprovalRequest(
+            id=request_id,
+            summary=voiced(summary),
+            diff=diff,
+            risk=risk,
+            complexity=complexity,
+        )
+        self.bus.post(
+            author=CHANGE_AGENT,
+            role=CHANGE_ROLE,
+            body=format_approval(request),
+            ts=ts,
+        )
+        return request
+

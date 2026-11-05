@@ -60,3 +60,11 @@ The auditor service binds to `127.0.0.1`. `AUDITOR_TOKEN` can read the key, the 
 
 At the start the auditor posts `SHA-256(key.json bytes + newline + salt)`. At the end it posts the key and the salt so anyone can recompute the hash. A miss is a private DM (`PRIVATE CANARY RESULT`) to the reviewer who approved the canary. That text is not written to the room log. A correct rejection gets a private "nice catch" and still does not execute.
 
+## Adapters
+
+`firedrill up` defaults to the local SQLite room. That path is what the tests and the offline demo run.
+
+Mattermost uses the preview image in `docker-compose.yml` on port 8065. That image has no `linux/arm64` manifest, so the compose file pins `platform: linux/amd64` for Apple Silicon. The adapter uses only these API v4 calls: `GET /api/v4/system/ping`, `GET /api/v4/users/me`, `POST /api/v4/posts`, `POST /api/v4/reactions`, and `POST /api/v4/channels/direct`. Set `MM_TOKEN` and `MM_CHANNEL_ID` in `.env`. The tool does not guess an admin password. If the server is up and the token is missing, `firedrill up --adapter mattermost` exits with those instructions.
+
+Switch uses `GET /health` and `POST /agents/{id}/message` with `{room_id, content}`. Other operations are called only after `GET /agents/{id}/ops`, and only with argument names that schema lists. `switch/room-template.yaml` is template language version 1. The `provider` field is there because Console requires it for a coding agent it places on a machine. The drill's worker, canary, and auditor are the Python processes in this repo. `auto_approve` is false. No Switch Console was installed here, so the template has not been applied to a live server.
+

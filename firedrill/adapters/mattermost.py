@@ -21,3 +21,11 @@ from firedrill.adapters.base import AdapterError
 from firedrill.models import RoomMessage
 
 
+def missing_token_message(base: str) -> str:
+    return (
+        f"Mattermost is reachable at {base}, and MM_TOKEN or MM_CHANNEL_ID is empty. "
+        "Create a personal access token, put MM_TOKEN and MM_CHANNEL_ID in .env, and run "
+        "`firedrill up --adapter mattermost`. Fire Drill does not guess an admin password."
+    )
+
+

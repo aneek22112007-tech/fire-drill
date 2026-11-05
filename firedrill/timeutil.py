@@ -19,3 +19,5 @@ def seconds_between(start: str, end: str) -> float:
     return max(0.0, (parse_ts(end) - parse_ts(start)).total_seconds())
 
 
+def add_seconds(start: str, seconds: float) -> str:
+    return format_ts(parse_ts(start) + timedelta(seconds=seconds))

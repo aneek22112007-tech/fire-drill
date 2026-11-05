@@ -24,3 +24,5 @@ Switch room templates and the agent protocol were read from the published docs, 
 
 Anything not confirmed by those docs stays behind `adapters/` and is implemented only on `LocalAdapter` until a live call succeeds.
 
+## Milestones
+

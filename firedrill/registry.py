@@ -13,3 +13,7 @@ from pathlib import Path
 from firedrill.models import Action
 
 
+class RegistryError(RuntimeError):
+    pass
+
+

@@ -12,3 +12,14 @@ ENV_PATH = ROOT / ".env"
 TOKENS = ROOT / "auditor_private" / "tokens.json"
 
 
+def _parse(text: str) -> dict[str, str]:
+    values: dict[str, str] = {}
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        values[key] = value
+    return values
+
+

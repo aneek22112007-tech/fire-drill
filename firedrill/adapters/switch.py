@@ -148,3 +148,15 @@ class SwitchAdapter:
             return payload
         return {"result": payload}
 
+    def operations(self) -> object:
+        if self._ops is None:
+            response = httpx.get(
+                f"{self.base_url}/agents/{self.agent_id}/ops",
+                headers=self._headers(),
+                timeout=10.0,
+            )
+            if response.status_code >= 400:
+                raise AdapterError(f"GET /agents/{self.agent_id}/ops returned {response.status_code}.")
+            self._ops = response.json()
+        return self._ops
+

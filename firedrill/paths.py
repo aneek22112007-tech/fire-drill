@@ -24,3 +24,7 @@ class DrillPaths:
         return self.data / "room.db"
 
     @property
+    def registry_db(self) -> Path:
+        return self.data / "worker_registry.db"
+
+    @property

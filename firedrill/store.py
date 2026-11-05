@@ -67,3 +67,15 @@ class AuditorStore:
     def close(self) -> None:
         self._conn.close()
 
+    def add_mapping(self, request_id: str, flaw_id: str) -> None:
+        with self._lock:
+            self._conn.execute(
+                "INSERT OR REPLACE INTO mappings (request_id, flaw_id) VALUES (?, ?)",
+                (request_id, flaw_id),
+            )
+            self._conn.execute(
+                "UPDATE requests SET is_canary = 1, flaw_id = ? WHERE id = ?",
+                (flaw_id, request_id),
+            )
+            self._conn.commit()
+

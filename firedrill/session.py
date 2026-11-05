@@ -226,3 +226,20 @@ class DrillSession:
             ts=ts,
         )
 
+    def _decision(
+        self,
+        request: dict[str, object],
+        reviewer: str,
+        action: str,
+        reason: str,
+        ts: str,
+    ) -> Decision:
+        return Decision(
+            request_id=str(request["id"]),
+            reviewer=reviewer,
+            action=action,  # type: ignore[arg-type]
+            reason=reason,
+            timestamp=ts,
+            latency_s=seconds_between(str(request["created_ts"]), ts),
+        )
+

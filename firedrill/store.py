@@ -79,3 +79,11 @@ class AuditorStore:
             )
             self._conn.commit()
 
+    def mapping_for(self, request_id: str) -> str | None:
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT flaw_id FROM mappings WHERE request_id = ?",
+                (request_id,),
+            ).fetchone()
+        return None if row is None else str(row["flaw_id"])
+

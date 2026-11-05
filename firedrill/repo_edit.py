@@ -13,3 +13,7 @@ from pathlib import Path
 from firedrill.models import Action
 
 
+def read_version(repo: Path) -> str:
+    return (repo / "VERSION").read_text(encoding="utf-8").strip()
+
+

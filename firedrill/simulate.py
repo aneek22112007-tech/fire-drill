@@ -78,3 +78,8 @@ def demo_key_bytes(seed: int) -> bytes:
     return (json.dumps(payload, indent=2, sort_keys=True) + "\n").encode("utf-8")
 
 
+def demo_salt(seed: int) -> str:
+    digest = hashlib.sha256(f"fire-drill-salt-{seed}".encode("utf-8")).hexdigest()
+    return "fd-salt-" + digest[:8]
+
+

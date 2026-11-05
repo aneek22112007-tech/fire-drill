@@ -92,3 +92,50 @@ class AuditorStore:
             rows = self._conn.execute("SELECT request_id, flaw_id FROM mappings").fetchall()
         return {row["request_id"]: row["flaw_id"] for row in rows}
 
+    def upsert_request(
+        self,
+        *,
+        request_id: str,
+        summary: str,
+        diff: str,
+        risk: str,
+        complexity: int,
+        created_ts: str,
+        flaw_id: str | None = None,
+        mast_mode: str | None = None,
+        assigned_reviewer: str | None = None,
+    ) -> None:
+        is_canary = 1 if flaw_id else 0
+        with self._lock:
+            self._conn.execute(
+                """
+                INSERT INTO requests (
+                    id, summary, diff, risk, complexity, created_ts,
+                    is_canary, flaw_id, mast_mode, assigned_reviewer
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    summary = excluded.summary,
+                    diff = excluded.diff,
+                    risk = excluded.risk,
+                    complexity = excluded.complexity,
+                    created_ts = excluded.created_ts,
+                    is_canary = MAX(requests.is_canary, excluded.is_canary),
+                    flaw_id = COALESCE(excluded.flaw_id, requests.flaw_id),
+                    mast_mode = COALESCE(excluded.mast_mode, requests.mast_mode),
+                    assigned_reviewer = COALESCE(excluded.assigned_reviewer, requests.assigned_reviewer)
+                """,
+                (
+                    request_id,
+                    summary,
+                    diff,
+                    risk,
+                    complexity,
+                    created_ts,
+                    is_canary,
+                    flaw_id,
+                    mast_mode,
+                    assigned_reviewer,
+                ),
+            )
+            self._conn.commit()
+

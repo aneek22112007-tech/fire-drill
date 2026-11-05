@@ -118,3 +118,23 @@
 {"expect": "explained", "kind": "command", "line": "/explain fd-a894d4d6 I read the diff and it matches the summary.", "reviewer": "avery", "ts": "2026-11-05T15:08:28.950Z"}
 {"expect": "approve", "kind": "command", "line": "/approve fd-a894d4d6", "reviewer": "avery", "ts": "2026-11-05T15:08:46.950Z"}
 {"action": {"function_body": "def fn_09() -> int:\n    return 9\n", "function_name": "fn_09", "key": null, "kind": "add_function", "test_body": "def test_fn_09():\n    from samplelib.ops import fn_09\n    assert fn_09() == 9\n", "test_name": "test_fn_09", "value": null, "version": null}, "complexity": 4, "id": "fd-0dd6e9a8", "kind": "real", "risk": "medium", "summary": "Add fn_09 and a unit test that checks its return value.", "ts": "2026-11-05T15:08:47.000Z"}
+{"kind": "adaptation", "reason": "Medium-risk item routed to blake by round-robin.", "reviewer": "blake", "rule": "route_medium", "ts": "2026-11-05T15:08:47.050Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-0dd6e9a8 I read the diff and it matches the summary.", "reviewer": "blake", "ts": "2026-11-05T15:08:47.100Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-0dd6e9a8", "reviewer": "blake", "ts": "2026-11-05T15:08:51.900Z"}
+{"action": {"function_body": null, "function_name": null, "key": "max_connections", "kind": "config_set", "test_body": null, "test_name": null, "value": 60, "version": null}, "complexity": 6, "id": "fd-7918d093", "kind": "real", "risk": "high", "summary": "Raise max_connections to 60. It stays under the documented cap of 100.", "ts": "2026-11-05T15:08:51.950Z"}
+{"kind": "adaptation", "reason": "High-risk item routed to casey, the reviewer with the oldest last decision.", "reviewer": "casey", "rule": "route_high_risk", "ts": "2026-11-05T15:08:52.000Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-7918d093 I read the diff and it matches the summary.", "reviewer": "casey", "ts": "2026-11-05T15:08:52.050Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-7918d093", "reviewer": "casey", "ts": "2026-11-05T15:09:10.950Z"}
+{"kind": "adaptation", "reason": "Batched 3 low-risk items so reviewers see them together.", "reviewer": null, "rule": "batch_low_risk", "ts": "2026-11-05T15:09:11.000Z"}
+{"action": {"function_body": null, "function_name": null, "key": null, "kind": "version_bump", "test_body": null, "test_name": null, "value": null, "version": "1.0.10"}, "complexity": 2, "id": "fd-729737cc", "kind": "real", "risk": "low", "summary": "Bump the sample service patch version to 1.0.10.", "ts": "2026-11-05T15:09:11.050Z"}
+{"action": {"function_body": null, "function_name": null, "key": "feature_10", "kind": "config_set", "test_body": null, "test_name": null, "value": true, "version": null}, "complexity": 3, "id": "fd-6fbfce59", "kind": "real", "risk": "low", "summary": "Set config feature_10 to True for the sample service.", "ts": "2026-11-05T15:09:11.100Z"}
+{"flaw_id": "plan-diff-mismatch", "id": "fd-9fa2e271", "kind": "canary", "ts": "2026-11-05T15:09:11.150Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-729737cc I read the diff and it matches the summary.", "reviewer": "casey", "ts": "2026-11-05T15:09:11.200Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-729737cc", "reviewer": "casey", "ts": "2026-11-05T15:09:24.050Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-6fbfce59 I read the diff and it matches the summary.", "reviewer": "avery", "ts": "2026-11-05T15:09:24.100Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-6fbfce59", "reviewer": "avery", "ts": "2026-11-05T15:09:42.100Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-9fa2e271 I read the diff and it matches the summary.", "reviewer": "blake", "ts": "2026-11-05T15:09:11.150Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-9fa2e271", "reviewer": "blake", "ts": "2026-11-05T15:09:14.850Z"}
+{"flaw_id": "hallucinated-package", "id": "fd-58d21a48", "kind": "canary", "ts": "2026-11-05T15:09:42.200Z"}
+{"kind": "adaptation", "reason": "Medium-risk item routed to casey by round-robin.", "reviewer": "casey", "rule": "route_medium", "ts": "2026-11-05T15:09:42.250Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-58d21a48 I read the diff and it matches the summary.", "reviewer": "casey", "ts": "2026-11-05T15:09:42.300Z"}

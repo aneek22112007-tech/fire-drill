@@ -56,3 +56,6 @@ class LocalAdapter:
         )
         self._conn.commit()
 
+    def close(self) -> None:
+        self._conn.close()
+

@@ -247,3 +247,9 @@ class AuditorStore:
         return {row["key"]: row["value"] for row in rows}
 
 
+def load_tokens(path: Path) -> dict[str, str]:
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    return {
+        "auditor_token": str(payload["auditor_token"]),
+        "canary_ingest_token": str(payload["canary_ingest_token"]),
+    }

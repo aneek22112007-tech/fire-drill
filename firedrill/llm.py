@@ -8,3 +8,4 @@ from typing import Any
 import httpx
 
 
+class LLM:

@@ -209,3 +209,20 @@ class DrillSession:
             self.store.add_mapping(request_id, flaw_id)
             self.store.set_mast(request_id, flaw.mast_mode)
 
+    def _canary_feedback(self, reviewer: str, request: dict[str, object], action: str, ts: str) -> None:
+        flaw_id = str(request.get("flaw_id") or "")
+        flaw = self.flaws.get(flaw_id)
+        title = flaw.title if flaw else "unknown flaw"
+        tell = flaw.tell if flaw else "The auditor has the clue."
+        if action == "approve":
+            body = miss_dm(flaw_id, title, tell)
+        else:
+            body = catch_dm(flaw_id, title, tell)
+        self.bus.post(
+            author="auditor",
+            role="auditor",
+            body=body,
+            channel=f"dm:{reviewer}",
+            ts=ts,
+        )
+

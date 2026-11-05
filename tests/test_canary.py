@@ -72,3 +72,24 @@ def test_canary_id_is_refused_and_mapping_is_not_kept(tmp_path, secret):
     bus.close()
 
 
+def test_worker_and_canary_messages_share_a_shape(tmp_path, secret):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    # The shape check uses the posted text, not the repository.
+    bus = LocalAdapter(tmp_path / "room.db")
+    registry = WorkerRegistry(tmp_path / "registry.db", secret)
+    sample = ROOT / "sample_repo"
+    worker = Worker(registry, bus, sample)
+    action = worker.action_version_bump()
+    summary, risk, complexity = worker.describe(action)
+    worker.propose(action, summary=summary, risk=risk, complexity=complexity, request_id="fd-11111111")
+
+    flaws = load_library(ROOT / "canaries" / "library.yaml")
+    Canary(bus, lambda *_args: None).post_flaw(flaws[0], request_id="fd-22222222")
+    bodies = [message.body for message in bus.read_room()]
+    assert len(bodies) == 2
+    assert all(HEADER.match(body) for body in bodies)
+    assert bodies[0].splitlines()[0].startswith("Approval request fd-")
+    assert bodies[1].splitlines()[0].startswith("Approval request fd-")
+    bus.close()
+    registry.close()

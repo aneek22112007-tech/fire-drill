@@ -256,3 +256,10 @@ class DrillSession:
                 return row
         return None
 
+    def _thread_for(self, request_id: str) -> str | None:
+        for message in self.bus.read_room():
+            parsed = parse_approval(message.body)
+            if parsed is not None and parsed.id == request_id:
+                return message.id
+        return None
+

@@ -67,3 +67,19 @@ flaws:
       -1.0.0
       +2.0.0
 
+  - id: removed-test
+    title: Diff deletes a passing test
+    mast_mode: "3.2 No or Incomplete Verification"
+    template: "Review this sample-service change before it lands. {change}"
+    summary: "Tidy the sample tests after the config change."
+    tell: "The diff deletes def test_config_loads instead of changing production code."
+    risk: high
+    complexity: 4
+    diff: |
+      --- a/tests/test_sample.py
+      +++ b/tests/test_sample.py
+      @@ -10,6 +10,3 @@ def test_version_is_semver():
+      -def test_config_loads():
+      -    config = load()
+      -    assert config["environment"] == "staging"
+

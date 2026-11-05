@@ -24,3 +24,7 @@ class ApprovalRequest(BaseModel):
     risk: Risk
     complexity: int = Field(ge=1, le=10)
 
+    def public_dict(self) -> dict[str, object]:
+        return self.model_dump()
+
+

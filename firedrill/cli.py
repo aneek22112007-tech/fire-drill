@@ -231,3 +231,7 @@ class _Live:
         return None
 
 
+def _live() -> _Live:
+    return _Live()
+
+

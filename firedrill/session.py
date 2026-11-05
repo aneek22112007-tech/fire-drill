@@ -13,3 +13,4 @@ from firedrill.store import AuditorStore
 from firedrill.timeutil import seconds_between
 
 
+class ConsentError(RuntimeError):

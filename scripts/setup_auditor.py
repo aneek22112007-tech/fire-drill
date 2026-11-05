@@ -41,3 +41,15 @@ def _try_create_user() -> str:
     return "unavailable"
 
 
+def _write_key(path: Path) -> None:
+    if path.exists():
+        return
+    payload = {
+        "version": 1,
+        "drill_key": secrets.token_hex(32),
+        "purpose": "fire-drill answer-key seal",
+    }
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    os.chmod(path, 0o600)
+
+

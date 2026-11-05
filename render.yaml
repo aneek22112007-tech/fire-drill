@@ -1,0 +1,16 @@
+# Read-only public dashboard of an offline Fire Drill run.
+# Publishes only aggregate results (public/). The answer key and tokens are
+# generated at build time inside auditor_private/ and are never published.
+services:
+  - type: web
+    name: fire-drill
+    runtime: static
+    repo: https://github.com/aneek22112007-tech/fire-drill
+    branch: main
+    buildCommand: pip install uv && uv sync --python 3.12 && (uv run python scripts/setup_auditor.py || true) && uv run firedrill run-demo --offline && uv run python scripts/export_public_dashboard.py
+    staticPublishPath: public
+    autoDeployTrigger: commit
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY

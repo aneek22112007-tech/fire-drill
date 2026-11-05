@@ -111,3 +111,14 @@ The offline demo is 50 real edits and 12 canaries, decided by three simulated re
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+## Deploy on Render
+
+The repo ships a read-only public dashboard of an offline drill as a Render static site.
+
+- `scripts/export_public_dashboard.py` turns `report.md` into `public/index.html` and `public/report.md`. It publishes aggregate results only and refuses to write anything that mentions flaw ids, tokens, or the key file.
+- `render.yaml` defines a static site called `fire-drill`. The build runs the offline demo and the export script, then publishes `public/`.
+- To deploy, create a Blueprint in the Render dashboard pointing at this repo, or create a static site with the same build command and publish path `public`.
+- Public URL: `https://fire-drill.onrender.com` (placeholder, confirm after first deploy).
+
+The live auditor service (`firedrill serve`) is not deployed. It binds to 127.0.0.1 and keeps the answer key private.

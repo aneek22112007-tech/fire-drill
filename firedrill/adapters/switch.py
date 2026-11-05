@@ -107,3 +107,4 @@ def probe_switch() -> str:
     return f"switch ready at {base} room {room_id}"
 
 
+class SwitchAdapter:

@@ -15,3 +15,8 @@ from firedrill.store import AuditorStore, load_tokens
 _BEARER = "Bearer "
 
 
+class MappingIn(BaseModel):
+    request_id: str
+    flaw_id: str
+
+

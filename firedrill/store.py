@@ -226,3 +226,8 @@ class AuditorStore:
             )
             self._conn.commit()
 
+    def meta(self, key: str) -> str | None:
+        with self._lock:
+            row = self._conn.execute("SELECT value FROM meta WHERE key = ?", (key,)).fetchone()
+        return None if row is None else str(row["value"])
+

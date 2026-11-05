@@ -64,3 +64,30 @@ def _write_tokens(path: Path) -> None:
     os.chmod(path, 0o600)
 
 
+def main() -> int:
+    AUDITOR_DIR.mkdir(parents=True, exist_ok=True)
+    os.chmod(AUDITOR_DIR, 0o700)
+    user_state = _try_create_user()
+    if user_state == "created":
+        subprocess.run(
+            ["sudo", "-n", "chown", "-R", f"{USER_NAME}:staff", str(AUDITOR_DIR)],
+            check=False,
+        )
+    _write_key(AUDITOR_DIR / "key.json")
+    _write_tokens(AUDITOR_DIR / "tokens.json")
+    note = AUDITOR_DIR / "README.txt"
+    note.write_text(
+        "Answer-key directory for Fire Drill.\n"
+        f"OS user firedrill-auditor: {user_state}.\n"
+        "When the user is unavailable, isolation is the token-gated service on 127.0.0.1.\n"
+        "The canary ingest token cannot read key.json. Do not commit this directory.\n",
+        encoding="utf-8",
+    )
+    os.chmod(note, 0o600)
+    mode = stat.S_IMODE(AUDITOR_DIR.stat().st_mode)
+    print(f"auditor_private mode {mode:o}; firedrill-auditor: {user_state}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

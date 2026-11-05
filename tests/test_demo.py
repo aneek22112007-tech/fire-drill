@@ -60,3 +60,15 @@ def test_offline_llm_does_not_call_the_network(monkeypatch):
     assert LLM(offline=True).complete("system", "  Keep this sentence.  ") == "Keep this sentence."
 
 
+def test_switch_filter_refuses_unpublished_argument_names():
+    schema = {"parameters": {"properties": {"room_id": {}, "content": {}}}}
+    assert filter_arguments(schema, {"room_id": "room-1", "content": "hello"}) == {
+        "room_id": "room-1",
+        "content": "hello",
+    }
+    with pytest.raises(AdapterError):
+        filter_arguments(schema, {"room_id": "room-1", "target": "someone"})
+    with pytest.raises(AdapterError):
+        filter_arguments({}, {"room_id": "room-1"})
+
+

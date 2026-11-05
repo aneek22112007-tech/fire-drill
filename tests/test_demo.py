@@ -115,3 +115,38 @@ def test_seed_events_are_deterministic(tmp_path):
     assert read_events(ROOT / "demo" / "recorded_drill.jsonl") == first
 
 
+def test_run_demo_and_replay_write_the_same_report(tmp_path):
+    paths = DrillPaths(root=tmp_path)
+    events = build_events(DrillPaths(root=ROOT), offline=True)
+    first = play(paths, events)
+    report = paths.report.read_text(encoding="utf-8")
+    assert first in report
+    assert "Injected 12 canaries across 62 items" in report
+    assert LIMITS in report
+    store = AuditorStore(paths.drill_db)
+    try:
+        metrics = compute_metrics(store.requests(), store.decisions())
+    finally:
+        store.close()
+    assert first == headline(metrics)
+    assert str(metrics.canaries_caught) in report
+    other = DrillPaths(root=tmp_path / "replay")
+    second = play(other, events)
+    assert other.report.read_text(encoding="utf-8") == report
+    assert second == first
+    bus = LocalAdapter(paths.room_db)
+    try:
+        room = "\n".join(message.body for message in bus.read_room())
+        private = "\n".join(message.body for message in bus.read_channel("dm:avery"))
+        private += "\n" + "\n".join(message.body for message in bus.read_channel("dm:blake"))
+        private += "\n" + "\n".join(message.body for message in bus.read_channel("dm:casey"))
+    finally:
+        bus.close()
+    assert MISS_MARK not in room
+    assert CATCH_MARK not in room
+    assert MISS_MARK in private or CATCH_MARK in private
+    ok, detail = verify_reveal_text(room)
+    assert ok
+    assert f"COMMITMENT sha256={detail}" in room
+
+

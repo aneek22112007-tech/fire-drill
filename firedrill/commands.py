@@ -31,3 +31,19 @@ class ParsedCommand:
     text: str = ""
 
 
+def parse_command(line: str) -> ParsedCommand | None:
+    text = line.strip()
+    if _OPTIN.match(text):
+        return ParsedCommand("optin")
+    approve = _APPROVE.match(text)
+    if approve:
+        return ParsedCommand("approve", approve.group(1))
+    reject = _REJECT.match(text)
+    if reject:
+        return ParsedCommand("reject", reject.group(1), reject.group(2).strip())
+    explain = _EXPLAIN.match(text)
+    if explain:
+        return ParsedCommand("explain", explain.group(1), explain.group(2).strip())
+    return None
+
+

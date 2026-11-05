@@ -30,3 +30,7 @@ Anything not confirmed by those docs stays behind `adapters/` and is implemented
 
 Package, CLI entry, pydantic models, and a SQLite `LocalAdapter` that stores author, role, timestamp, thread, and channel. Test: post three messages and read them back in commit order.
 
+### M2 — Worker and executor
+
+The worker proposes real edits on `sample_repo/` (patch version bump, config change, add a function and a test) and posts an `ApprovalRequest`. `executor.py` applies the action only when the id is in the worker registry and the HMAC made with `WORKER_SECRET` matches. Test: an approval changes the tree and its tests pass; a rejection leaves the tree untouched.
+

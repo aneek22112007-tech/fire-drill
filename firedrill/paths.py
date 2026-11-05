@@ -12,3 +12,7 @@ def repo_root() -> Path:
 
 
 @dataclass
+class DrillPaths:
+    root: Path
+
+    @property

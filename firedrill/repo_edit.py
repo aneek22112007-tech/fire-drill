@@ -17,3 +17,8 @@ def read_version(repo: Path) -> str:
     return (repo / "VERSION").read_text(encoding="utf-8").strip()
 
 
+def bump_patch(version: str) -> str:
+    major, minor, patch = (int(part) for part in version.split("."))
+    return f"{major}.{minor}.{patch + 1}"
+
+

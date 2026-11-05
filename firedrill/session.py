@@ -160,3 +160,16 @@ class DrillSession:
             if decision.reviewer == reviewer and decision.action in {"approve", "reject"}
         ]
 
+    def start(self, salt: str, ts: str) -> str:
+        missing = [reviewer for reviewer in self.required if reviewer not in self.store.opted()]
+        if missing:
+            raise ConsentError(missing)
+        digest = commitment_hash(self.key_bytes, salt)
+        if self.started:
+            return digest
+        self.store.set_meta("salt", salt)
+        self.store.set_meta("commitment", digest)
+        self._say("auditor", "auditor", commitment_message(digest), ts)
+        self.started = True
+        return digest
+

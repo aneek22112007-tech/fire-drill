@@ -1,0 +1,19 @@
+# Fire Drill room template, Switch template language version 1.
+# Reference: https://github.com/sandbox-quantum/switch/blob/main/docs/TEMPLATES.md
+#
+# The provider, location, and directory fields are required by that language so
+# Switch Console can place a coding agent on a machine. They are not the Fire
+# Drill worker, canary, or auditor. Those three run as the Python processes in
+# this repository. auto_approve is false, and auto_mode is false, so a Console
+# agent cannot apply a tool call on its own. The Python executor applies a
+# change only when the id is in the worker HMAC registry. Canaries are never
+# in that registry.
+#
+# Addressing uses the template form (owner, owner-agents, anyone), which is
+# who may talk to the agent. The canary and the auditor are owner-only. The
+# worker is anyone, so reviewers can reply in the room. Custom agents that
+# speak the agent protocol still register with POST /agents; this document
+# does not invent operation argument names.
+
+version: 1
+

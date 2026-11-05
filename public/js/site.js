@@ -322,17 +322,91 @@
       steps.forEach(step => storyObserver.observe(step));
     }
 
-    const tilt = $('[data-tilt]');
-    if (tilt && matchMedia('(pointer:fine)').matches && !reducedMotion.matches) {
-      tilt.addEventListener('pointermove', event => {
-        const rect = tilt.getBoundingClientRect();
-        const x = (event.clientX - rect.left) / rect.width - .5;
-        const y = (event.clientY - rect.top) / rect.height - .5;
-        tilt.style.transform = `rotateY(${-7 + x * 4}deg) rotateX(${3 - y * 4}deg) translate3d(${x * 4}px,${y * 4}px,0)`;
-      });
-      tilt.addEventListener('pointerleave', () => { tilt.style.transform = ''; });
-    }
+    initHeroDepth();
     initCanvas();
+  }
+
+  function initHeroDepth() {
+    const hero = $('.hero');
+    const visual = $('[data-hero-visual]');
+    const consoleWrap = $('[data-tilt]');
+    if (!hero || !visual || !consoleWrap) return;
+
+    const capablePointer = matchMedia('(pointer: fine) and (min-width: 901px)');
+    const layers = [
+      { el: $('[data-depth="console"]'), x: 15, y: 10, z: 28, rx: -1.5, ry: 2 },
+      { el: $('[data-depth="catch"]'), x: -26, y: -19, z: 105, rx: 3, ry: -4 },
+      { el: $('[data-depth="flag"]'), x: 30, y: -23, z: 135, rx: -3, ry: 4 },
+      { el: $('[data-depth="tag"]'), x: -18, y: 13, z: 76, rx: 2, ry: -3 },
+      { el: $('[data-depth="glow"]'), x: 22, y: 14, z: -90, rx: -.5, ry: 1 },
+      { el: $('[data-depth="orbit-one"]'), x: -12, y: 8, z: -70, rx: .5, ry: -.8 },
+      { el: $('[data-depth="orbit-two"]'), x: 17, y: -11, z: -35, rx: -.6, ry: 1 }
+    ].filter(layer => layer.el);
+    const target = { x: 0, y: 0, scroll: 0 };
+    const current = { ...target };
+    let frame = null;
+
+    const updateScroll = () => {
+      target.scroll = Math.min(1, Math.max(0, window.scrollY / Math.max(hero.offsetHeight, 1)));
+      requestTick();
+    };
+    const render = () => {
+      frame = null;
+      if (reducedMotion.matches || !capablePointer.matches || landing.hidden || document.hidden) return;
+      let moving = false;
+      ['x', 'y', 'scroll'].forEach(key => {
+        const delta = target[key] - current[key];
+        current[key] += delta * .085;
+        if (Math.abs(delta) > .0005) moving = true;
+        else current[key] = target[key];
+      });
+      consoleWrap.style.setProperty('--tilt-y', `${(current.x * 9).toFixed(3)}deg`);
+      consoleWrap.style.setProperty('--tilt-x', `${(-current.y * 7).toFixed(3)}deg`);
+      consoleWrap.style.setProperty('--scroll-y', `${(current.scroll * 24).toFixed(2)}px`);
+      layers.forEach(({ el, x, y, z, rx, ry }) => {
+        el.style.setProperty('--layer-x', `${(current.x * x).toFixed(2)}px`);
+        el.style.setProperty('--layer-y', `${(current.y * y + current.scroll * z * .12).toFixed(2)}px`);
+        el.style.setProperty('--layer-rotate-x', `${(current.y * rx).toFixed(3)}deg`);
+        el.style.setProperty('--layer-rotate-y', `${(current.x * ry).toFixed(3)}deg`);
+      });
+      if (moving) requestTick();
+    };
+    function requestTick() {
+      if (frame === null && !reducedMotion.matches && capablePointer.matches && !landing.hidden && !document.hidden) {
+        frame = requestAnimationFrame(render);
+      }
+    }
+    const reset = () => {
+      target.x = 0;
+      target.y = 0;
+      requestTick();
+    };
+    const syncCapability = () => {
+      if (frame !== null) cancelAnimationFrame(frame);
+      frame = null;
+      if (reducedMotion.matches || !capablePointer.matches) {
+        consoleWrap.style.removeProperty('--tilt-x');
+        consoleWrap.style.removeProperty('--tilt-y');
+        consoleWrap.style.removeProperty('--scroll-y');
+        layers.forEach(({ el }) => ['--layer-x', '--layer-y', '--layer-rotate-x', '--layer-rotate-y'].forEach(name => el.style.removeProperty(name)));
+        return;
+      }
+      updateScroll();
+    };
+
+    visual.addEventListener('pointermove', event => {
+      if (!capablePointer.matches || reducedMotion.matches) return;
+      const rect = visual.getBoundingClientRect();
+      target.x = Math.min(.5, Math.max(-.5, (event.clientX - rect.left) / rect.width - .5)) * 2;
+      target.y = Math.min(.5, Math.max(-.5, (event.clientY - rect.top) / rect.height - .5)) * 2;
+      requestTick();
+    }, { passive: true });
+    visual.addEventListener('pointerleave', reset, { passive: true });
+    window.addEventListener('scroll', updateScroll, { passive: true });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) updateScroll(); });
+    capablePointer.addEventListener('change', syncCapability);
+    reducedMotion.addEventListener('change', syncCapability);
+    syncCapability();
   }
 
   function initCanvas() {

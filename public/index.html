@@ -92,10 +92,12 @@
             </div>
           </div>
 
-          <div class="hero-visual" aria-label="Fire Drill oversight console preview">
-            <div class="orbit orbit-one" aria-hidden="true"></div><div class="orbit orbit-two" aria-hidden="true"></div>
+          <div class="hero-visual" data-hero-visual aria-label="Fire Drill oversight console preview">
+            <div class="orbit-layer orbit-layer-one" data-depth="orbit-one" aria-hidden="true"><div class="orbit orbit-one"></div></div>
+            <div class="orbit-layer orbit-layer-two" data-depth="orbit-two" aria-hidden="true"><div class="orbit orbit-two"></div></div>
             <div class="console-wrap" data-tilt>
-              <div class="console-glow" aria-hidden="true"></div>
+              <div class="console-glow" data-depth="glow" aria-hidden="true"></div>
+              <div class="console-depth" data-depth="console">
               <div class="console-window">
                 <div class="console-top"><div class="window-dots"><i></i><i></i><i></i></div><span>drill / room-01</span><span class="console-live"><i></i> MONITORING</span></div>
                 <div class="console-body">
@@ -113,9 +115,10 @@
                   </div>
                 </div>
               </div>
-              <div class="float-card float-catch"><span class="float-icon"><svg><use href="#i-check"/></svg></span><div><strong>Canary caught</strong><small>Avery · 35.5s median</small></div></div>
-              <div class="float-card float-flag"><span class="float-icon"><svg><use href="#i-eye"/></svg></span><div><strong>Explain-back triggered</strong><small>Review pattern looks automatic</small></div></div>
-              <div class="float-tag"><svg><use href="#i-shield"/></svg> Canaries never execute</div>
+              </div>
+              <div class="float-card float-catch" data-depth="catch"><span class="float-icon"><svg><use href="#i-check"/></svg></span><div><strong>Canary caught</strong><small>Avery · 35.5s median</small></div></div>
+              <div class="float-card float-flag" data-depth="flag"><span class="float-icon"><svg><use href="#i-eye"/></svg></span><div><strong>Explain-back triggered</strong><small>Review pattern looks automatic</small></div></div>
+              <div class="float-tag" data-depth="tag"><svg><use href="#i-shield"/></svg> Canaries never execute</div>
             </div>
           </div>
         </div>

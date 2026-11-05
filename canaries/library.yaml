@@ -1,0 +1,4 @@
+# Twelve canaries. The public request uses `template` + `summary` and `diff`.
+# `tell` is the clue a careful reviewer can see in that same text. It is not
+# posted to the room. The canary sends only {request_id: id} to the auditor.
+flaws:

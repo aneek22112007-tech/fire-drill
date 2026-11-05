@@ -82,3 +82,76 @@ def _rate(caught: int, total: int) -> float | None:
     return caught / total
 
 
+def compute_metrics(
+    requests: list[dict[str, object]],
+    decisions: list[Decision],
+    *,
+    cv_limit: float = 0.25,
+    min_decisions: int = 5,
+    median_limit: float = 8.0,
+) -> DrillMetrics:
+    from firedrill.adapt import is_flat
+
+    closed = _closing(decisions)
+    canaries = [row for row in requests if row.get("is_canary")]
+    reals = [row for row in requests if not row.get("is_canary")]
+    caught = [
+        row
+        for row in canaries
+        if row["id"] in closed and closed[str(row["id"])].action == "reject"
+    ]
+    canary_times = [_latency(row, closed) for row in canaries if row["id"] in closed]
+    real_times = [_latency(row, closed) for row in reals if row["id"] in closed]
+    paired = _pairs(requests, closed)
+
+    by_mast: dict[str, float | None] = {}
+    modes = sorted({str(row.get("mast_mode")) for row in canaries if row.get("mast_mode")})
+    for mode in modes:
+        group = [row for row in canaries if row.get("mast_mode") == mode]
+        group_caught = sum(
+            1
+            for row in group
+            if row["id"] in closed and closed[str(row["id"])].action == "reject"
+        )
+        by_mast[mode] = _rate(group_caught, len(group))
+
+    reviewers = sorted({decision.reviewer for decision in decisions if decision.action in {"approve", "reject"}})
+    by_reviewer: list[ReviewerMetrics] = []
+    flat_reviewers: list[str] = []
+    for reviewer in reviewers:
+        own = [decision for decision in closed.values() if decision.reviewer == reviewer]
+        own_ids = {decision.request_id for decision in own}
+        own_canaries = [row for row in canaries if row["id"] in own_ids]
+        own_reals = [row for row in reals if row["id"] in own_ids]
+        own_caught = sum(1 for row in own_canaries if closed[str(row["id"])].action == "reject")
+        own_pairs = _pairs(requests, {item.request_id: item for item in own})
+        times = [decision.latency_s for decision in own]
+        flat = is_flat(times, cv_limit=cv_limit, min_decisions=min_decisions, median_limit=median_limit)
+        if flat:
+            flat_reviewers.append(reviewer)
+        by_reviewer.append(
+            ReviewerMetrics(
+                reviewer=reviewer,
+                decisions=len(own),
+                catch_rate=_rate(own_caught, len(own_canaries)),
+                median_canary_s=median([_latency(row, closed) for row in own_canaries]),
+                median_real_s=median([_latency(row, closed) for row in own_reals]),
+                correlation=pearson([pair[0] for pair in own_pairs], [pair[1] for pair in own_pairs]),
+                flat=flat,
+            )
+        )
+
+    return DrillMetrics(
+        items=len(requests),
+        canaries_injected=len(canaries),
+        canaries_caught=len(caught),
+        catch_rate=_rate(len(caught), len(canaries)),
+        median_canary_s=median([value for value in canary_times if value is not None]),
+        median_real_s=median([value for value in real_times if value is not None]),
+        correlation=pearson([pair[0] for pair in paired], [pair[1] for pair in paired]),
+        by_reviewer=by_reviewer,
+        by_mast=by_mast,
+        flat_reviewers=flat_reviewers,
+    )
+
+

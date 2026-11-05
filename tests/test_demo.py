@@ -72,3 +72,10 @@ def test_switch_filter_refuses_unpublished_argument_names():
         filter_arguments({}, {"room_id": "room-1"})
 
 
+def test_mattermost_instructions_do_not_guess_a_password():
+    text = missing_token_message("http://127.0.0.1:8065")
+    assert "MM_TOKEN" in text
+    assert "does not guess an admin password" in text
+    assert "admin123" not in text
+
+

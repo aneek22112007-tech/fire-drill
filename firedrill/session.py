@@ -135,3 +135,21 @@ class DrillSession:
             return self.command(reviewer, f"/reject {parsed.id} rejected by reaction", ts)
         return "ignored"
 
+    def _arm_flatness(self, reviewer: str, ts: str) -> None:
+        times = self._review_times(reviewer)
+        if not is_flat(times) or reviewer in self.needs_explain:
+            return
+        self.needs_explain.add(reviewer)
+        self.explained_ready.discard(reviewer)
+        middle = median(times)
+        rendered = "n/a" if middle is None else f"{middle:.3f}"
+        self.store.record_adaptation(
+            ts=ts,
+            rule="flatness_explain_back",
+            reviewer=reviewer,
+            reason=(
+                f"{reviewer} review times are flat (median {rendered}s across {len(times)} "
+                "decisions). Explain-back is required before the next approval."
+            ),
+        )
+

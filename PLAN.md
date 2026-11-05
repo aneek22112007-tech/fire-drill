@@ -34,3 +34,7 @@ Package, CLI entry, pydantic models, and a SQLite `LocalAdapter` that stores aut
 
 The worker proposes real edits on `sample_repo/` (patch version bump, config change, add a function and a test) and posts an `ApprovalRequest`. `executor.py` applies the action only when the id is in the worker registry and the HMAC made with `WORKER_SECRET` matches. Test: an approval changes the tree and its tests pass; a rejection leaves the tree untouched.
 
+### M3 — Canary library and canary agent
+
+`canaries/library.yaml` holds 12 flaws. The canary posts requests through the same formatter and id shape as the worker, sends `{request_id → flaw_id}` to the auditor service, and does not keep a copy. Test: a canary id is absent from the worker registry, so the executor refuses it.
+

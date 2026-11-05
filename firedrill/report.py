@@ -44,3 +44,28 @@ def headline(metrics: DrillMetrics) -> str:
     )
 
 
+def recommend(metrics: DrillMetrics) -> str:
+    if metrics.flat_reviewers:
+        name = metrics.flat_reviewers[0]
+        return (
+            f"Require {name} to explain the diff in one sentence before every approval "
+            "until their review-time coefficient of variation is at least 0.25 and "
+            "their median review time is at least 8 seconds."
+        )
+    weak = [
+        (mode, rate)
+        for mode, rate in metrics.by_mast.items()
+        if rate is not None and rate < 0.5
+    ]
+    if weak:
+        mode, rate = sorted(weak, key=lambda item: item[1])[0]
+        return (
+            f"Add a checklist item for {mode} before high-risk approvals. "
+            f"Catch rate on that mode is {fmt_rate(rate)}."
+        )
+    return (
+        "Keep the canary rate and compare the next drill's catch rate "
+        "before changing the approval UI."
+    )
+
+

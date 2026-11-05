@@ -130,3 +130,21 @@ class SwitchAdapter:
             headers["X-Switch-Connection-Id"] = self.connection_id
         return headers
 
+    def post_room(self, content: str) -> dict[str, Any]:
+        """POST /agents/{id}/message. This call does not need a websocket connection."""
+
+        response = httpx.post(
+            f"{self.base_url}/agents/{self.agent_id}/message",
+            headers=self._headers(),
+            json={"room_id": self.room_id, "content": content},
+            timeout=15.0,
+        )
+        if response.status_code >= 400:
+            raise AdapterError(
+                f"POST /agents/{self.agent_id}/message returned {response.status_code}."
+            )
+        payload = response.json()
+        if isinstance(payload, dict):
+            return payload
+        return {"result": payload}
+

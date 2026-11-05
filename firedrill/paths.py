@@ -58,3 +58,7 @@ class DrillPaths:
         return self.data / "work_repo"
 
     @property
+    def report(self) -> Path:
+        return self.root / "report.md"
+
+    @property

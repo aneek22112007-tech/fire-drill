@@ -166,3 +166,19 @@ flaws:
        environment: staging
        max_connections: 20
 
+  - id: off-by-one
+    title: Loop bound is one past the stated range
+    mast_mode: "3.3 Incorrect Verification"
+    template: "Review this sample-service change before it lands. {change}"
+    summary: "Iterate i in 0..n-1 and count the items."
+    tell: "The summary says 0..n-1, but the diff uses range(n + 1)."
+    risk: low
+    complexity: 6
+    diff: |
+      --- a/src/samplelib/ops.py
+      +++ b/src/samplelib/ops.py
+      @@ -4,3 +4,5 @@ def fn_seed() -> str:
+      +def count_items(n: int) -> int:
+      +    return len(range(n + 1))
+           return "ok"
+

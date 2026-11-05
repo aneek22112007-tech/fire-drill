@@ -52,3 +52,11 @@ Narration you can read over those commands:
 
 `firedrill replay demo/recorded_drill.jsonl` repeats that drill from the recording. A live room uses `firedrill consent <reviewer>` (the person types `/optin`) and `firedrill start` before any decisions.
 
+## Answer-key threat model
+
+The answer key is the map from request id to flaw, plus the bytes in `auditor_private/key.json`. That directory is mode 0700 and is not in git. `make setup-auditor` tries to create an OS user named `firedrill-auditor` with non-interactive `sudo`. On this Mac that needs an administrator password, so when sudo refuses, isolation is the token gate instead.
+
+The auditor service binds to `127.0.0.1`. `AUDITOR_TOKEN` can read the key, the mappings, and `/dashboard`. `CANARY_INGEST_TOKEN` can only `POST /mappings`. The worker and the canary receive 401 on the key. The canary process is not given `WORKER_SECRET`, and `executor.py` will not apply an id the worker did not sign.
+
+At the start the auditor posts `SHA-256(key.json bytes + newline + salt)`. At the end it posts the key and the salt so anyone can recompute the hash. A miss is a private DM (`PRIVATE CANARY RESULT`) to the reviewer who approved the canary. That text is not written to the room log. A correct rejection gets a private "nice catch" and still does not execute.
+

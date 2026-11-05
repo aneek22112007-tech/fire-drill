@@ -100,3 +100,6 @@ class LocalAdapter:
         message.seq = seq
         return message
 
+    def read_room(self) -> list[RoomMessage]:
+        return self.read_channel("room")
+

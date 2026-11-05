@@ -33,3 +33,10 @@ console = Console(soft_wrap=True)
 
 
 @app.callback()
+def main() -> None:
+    """Chaos engineering for human oversight of AI agents."""
+
+    load_env_file(default_paths().root / ".env")
+
+
+@app.command()

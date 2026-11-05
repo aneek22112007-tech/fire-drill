@@ -56,3 +56,16 @@ def _room_text(bus: LocalAdapter) -> str:
     return "\n".join(message.body for message in bus.read_room())
 
 
+def test_drill_refuses_to_start_without_full_consent(world):
+    session = world["session"]
+    session.command("avery", "/optin", "2026-11-05T15:00:00.000Z")
+    with pytest.raises(ConsentError, match="blake"):
+        session.start("salt", "2026-11-05T15:00:01.000Z")
+    assert session.started is False
+    session.command("blake", "/optin", "2026-11-05T15:00:02.000Z")
+    session.command("casey", "/optin", "2026-11-05T15:00:03.000Z")
+    digest = session.start("salt", "2026-11-05T15:00:04.000Z")
+    assert session.started is True
+    assert digest in _room_text(world["bus"])
+
+

@@ -19,3 +19,4 @@ def new_request_id(rng: random.Random | None = None) -> str:
     return "fd-" + f"{rng.getrandbits(32):08x}"
 
 
+class Worker:

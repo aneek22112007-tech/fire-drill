@@ -373,3 +373,7 @@ def _post(item: Item, ts: str) -> dict[str, object]:
     }
 
 
+def _note(rule: str, reviewer: str | None, reason: str, ts: str) -> dict[str, object]:
+    return {"kind": "adaptation", "rule": rule, "reviewer": reviewer, "reason": reason, "ts": ts}
+
+

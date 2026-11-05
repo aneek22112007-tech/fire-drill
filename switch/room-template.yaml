@@ -31,3 +31,20 @@ params:
     input: advanced
 
 agents:
+  - name: worker
+    display_name: Worker
+    description: Proposes real sample-repo edits and waits for approval.
+    provider: "{provider}"
+    location: "{location}"
+    directory: "{$agents_dir}/fire-drill-worker"
+    addressing: anyone
+    auto_approve: false
+    auto_mode: false
+    instructions: |
+      You are the Fire Drill worker. Propose real, safe edits to the sample
+      service: a patch version bump, a config change inside the documented
+      caps, or a new function with a unit test. Post an approval request and
+      wait. Do not apply the change yourself. Do not claim a request was a
+      canary. The executor, not you, applies an id, and only when that id is
+      in the worker registry.
+

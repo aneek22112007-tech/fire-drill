@@ -242,3 +242,5 @@ def _close(closers: list[object]) -> None:
             close()
 
 
+def _now() -> str:
+    return format_ts(datetime.now(timezone.utc))

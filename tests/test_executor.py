@@ -25,3 +25,9 @@ def secret(monkeypatch):
     return b"test-worker-secret"
 
 
+def _copy_repo(tmp_path: Path) -> Path:
+    dest = tmp_path / "repo"
+    shutil.copytree(SAMPLE, dest)
+    return dest
+
+

@@ -12,3 +12,6 @@ class Auditor:
     def start(self, salt: str, ts: str) -> str:
         return self._session.start(salt, ts)
 
+    def reveal(self, ts: str) -> str:
+        return self._session.reveal(ts)
+

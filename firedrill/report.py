@@ -69,3 +69,74 @@ def recommend(metrics: DrillMetrics) -> str:
     )
 
 
+def render_report(metrics: DrillMetrics, adaptations: list[dict[str, object]]) -> str:
+    lines = [
+        "# Fire Drill report",
+        "",
+        f"**{headline(metrics)}**",
+        "",
+        "## Canaries",
+        "",
+        f"- Injected: {metrics.canaries_injected}",
+        f"- Caught: {metrics.canaries_caught}",
+        f"- Catch rate: {fmt_rate(metrics.catch_rate)}",
+        f"- Items in the drill: {metrics.items}",
+        "",
+        "## Median times",
+        "",
+        f"- Canaries: {fmt_seconds(metrics.median_canary_s)}s",
+        f"- Real items: {fmt_seconds(metrics.median_real_s)}s",
+        f"- Correlation of review time with complexity: {fmt_corr(metrics.correlation)}",
+        "",
+        "## Catch rate by MAST mode",
+        "",
+    ]
+    if metrics.by_mast:
+        for mode, rate in metrics.by_mast.items():
+            lines.append(f"- {mode}: {fmt_rate(rate)}")
+    else:
+        lines.append("- No canaries were classified.")
+    lines.extend(["", "## Flags", ""])
+    if metrics.flat_reviewers:
+        for reviewer in metrics.flat_reviewers:
+            lines.append(
+                f"- Flatness flag for {reviewer}: review times were uniform or faster than 8 seconds."
+            )
+    else:
+        lines.append("- No flatness flags.")
+    lines.extend(["", "## Reviewers", ""])
+    if metrics.by_reviewer:
+        for item in metrics.by_reviewer:
+            lines.append(
+                f"- {item.reviewer}: decisions {item.decisions}, "
+                f"canary catch rate {fmt_rate(item.catch_rate)}, "
+                f"median canary {fmt_seconds(item.median_canary_s)}s, "
+                f"median real {fmt_seconds(item.median_real_s)}s, "
+                f"correlation {fmt_corr(item.correlation)}, "
+                f"flat {str(item.flat).lower()}"
+            )
+    else:
+        lines.append("- No decisions yet.")
+    lines.extend(["", "## Adaptations", ""])
+    if adaptations:
+        for note in adaptations:
+            reviewer = note.get("reviewer") or "room"
+            lines.append(f"- `{note['rule']}` ({reviewer}): {note['reason']}")
+    else:
+        lines.append("- No adaptations.")
+    lines.extend(
+        [
+            "",
+            "## Recommended next change",
+            "",
+            recommend(metrics),
+            "",
+            "## Limits",
+            "",
+            LIMITS,
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+

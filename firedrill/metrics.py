@@ -76,3 +76,9 @@ def _closing(decisions: list[Decision]) -> dict[str, Decision]:
     return closed
 
 
+def _rate(caught: int, total: int) -> float | None:
+    if total == 0:
+        return None
+    return caught / total
+
+

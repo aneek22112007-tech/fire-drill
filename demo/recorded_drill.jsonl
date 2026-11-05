@@ -18,3 +18,23 @@
 {"action": {"function_body": null, "function_name": null, "key": null, "kind": "version_bump", "test_body": null, "test_name": null, "value": null, "version": "1.0.2"}, "complexity": 2, "id": "fd-114ab0c8", "kind": "real", "risk": "low", "summary": "Bump the sample service patch version to 1.0.2.", "ts": "2026-11-05T15:01:28.300Z"}
 {"action": {"function_body": null, "function_name": null, "key": "feature_02", "kind": "config_set", "test_body": null, "test_name": null, "value": true, "version": null}, "complexity": 3, "id": "fd-7a428f45", "kind": "real", "risk": "low", "summary": "Set config feature_02 to True for the sample service.", "ts": "2026-11-05T15:01:28.350Z"}
 {"flaw_id": "off-by-one", "id": "fd-906b0ecb", "kind": "canary", "ts": "2026-11-05T15:01:28.400Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-114ab0c8", "reviewer": "avery", "ts": "2026-11-05T15:01:56.300Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-7a428f45 I read the diff and it matches the summary.", "reviewer": "blake", "ts": "2026-11-05T15:01:28.350Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-7a428f45", "reviewer": "blake", "ts": "2026-11-05T15:01:32.650Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-906b0ecb", "reviewer": "casey", "ts": "2026-11-05T15:01:47.400Z"}
+{"action": {"function_body": "def fn_02() -> int:\n    return 2\n", "function_name": "fn_02", "key": null, "kind": "add_function", "test_body": "def test_fn_02():\n    from samplelib.ops import fn_02\n    assert fn_02() == 2\n", "test_name": "test_fn_02", "value": null, "version": null}, "complexity": 4, "id": "fd-e052ee1a", "kind": "real", "risk": "medium", "summary": "Add fn_02 and a unit test that checks its return value.", "ts": "2026-11-05T15:01:56.450Z"}
+{"kind": "adaptation", "reason": "Medium-risk item routed to avery by round-robin.", "reviewer": "avery", "rule": "route_medium", "ts": "2026-11-05T15:01:56.500Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-e052ee1a", "reviewer": "avery", "ts": "2026-11-05T15:02:30.450Z"}
+{"flaw_id": "wrong-semver", "id": "fd-f4c2be73", "kind": "canary", "ts": "2026-11-05T15:02:30.500Z"}
+{"kind": "adaptation", "reason": "Medium-risk item routed to blake by round-robin.", "reviewer": "blake", "rule": "route_medium", "ts": "2026-11-05T15:02:30.550Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-f4c2be73 I read the diff and it matches the summary.", "reviewer": "blake", "ts": "2026-11-05T15:02:30.600Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-f4c2be73", "reviewer": "blake", "ts": "2026-11-05T15:02:34.200Z"}
+{"flaw_id": "wrong-channel", "id": "fd-2f9bcdd5", "kind": "canary", "ts": "2026-11-05T15:02:34.250Z"}
+{"kind": "adaptation", "reason": "Medium-risk item routed to casey by round-robin.", "reviewer": "casey", "rule": "route_medium", "ts": "2026-11-05T15:02:34.300Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-2f9bcdd5", "reviewer": "casey", "ts": "2026-11-05T15:02:48.750Z"}
+{"flaw_id": "ignored-constraint", "id": "fd-7ada6d6e", "kind": "canary", "ts": "2026-11-05T15:02:48.800Z"}
+{"kind": "adaptation", "reason": "Medium-risk item routed to avery by round-robin.", "reviewer": "avery", "rule": "route_medium", "ts": "2026-11-05T15:02:48.850Z"}
+{"expect": "reject", "kind": "command", "line": "/reject fd-7ada6d6e the summary caps retries at 5 but the diff sets 50", "reviewer": "avery", "ts": "2026-11-05T15:03:22.800Z"}
+{"kind": "adaptation", "reason": "Batched 2 low-risk items so reviewers see them together.", "reviewer": null, "rule": "batch_low_risk", "ts": "2026-11-05T15:03:22.850Z"}
+{"action": {"function_body": null, "function_name": null, "key": null, "kind": "version_bump", "test_body": null, "test_name": null, "value": null, "version": "1.0.3"}, "complexity": 2, "id": "fd-29b8a4f9", "kind": "real", "risk": "low", "summary": "Bump the sample service patch version to 1.0.3.", "ts": "2026-11-05T15:03:22.900Z"}
+{"action": {"function_body": null, "function_name": null, "key": "feature_03", "kind": "config_set", "test_body": null, "test_name": null, "value": true, "version": null}, "complexity": 3, "id": "fd-d5823127", "kind": "real", "risk": "low", "summary": "Set config feature_03 to True for the sample service.", "ts": "2026-11-05T15:03:22.950Z"}

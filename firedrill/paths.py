@@ -16,3 +16,7 @@ class DrillPaths:
     root: Path
 
     @property
+    def data(self) -> Path:
+        return self.root / "data"
+
+    @property

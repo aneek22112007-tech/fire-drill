@@ -79,3 +79,8 @@ class DrillPaths:
         self.recorded.parent.mkdir(parents=True, exist_ok=True)
 
 
+def default_paths() -> DrillPaths:
+    override = os.environ.get("FIREDRILL_ROOT", "").strip()
+    if override:
+        return DrillPaths(root=Path(override).resolve())
+    return DrillPaths(root=repo_root())

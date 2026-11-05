@@ -50,7 +50,7 @@ Narration you can read over those commands:
 3. `firedrill report` prints the headline from the database. The limits section says this is a method demo, not a significance claim.
 4. `firedrill verify` recomputes SHA-256 of the revealed key and salt and checks it against the commitment posted when the drill started. The command prints the hash, not the key.
 
-`firedrill replay demo/recorded_drill.jsonl` repeats that drill from the recording. A live room uses `firedrill consent <reviewer>` (the person types `/optin`) and then `firedrill start --adapter local|mattermost|switch`. That command posts the approval requests, reads `/approve`, `/reject`, and `/explain` from the adapter, and sends the private canary reveals on the same adapter.
+`firedrill replay demo/recorded_drill.jsonl` repeats that drill from the recording. The recording has no flaw ids. Replay reads the request-to-flaw map from `auditor_private/recorded_key.json`, which `run-demo` writes and git does not track. A live room uses `firedrill consent <reviewer>` (the person types `/optin`) and then `firedrill start --adapter local|mattermost|switch`. That command posts the approval requests, reads `/approve`, `/reject`, and `/explain` from the adapter, and sends the private canary reveals on the same adapter.
 
 ## Answer-key threat model
 

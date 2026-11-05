@@ -23,7 +23,7 @@ from firedrill.registry import WorkerRegistry
 from firedrill.report import write_report
 from firedrill.service import BIND_HOST, app_from_env
 from firedrill.session import ConsentError, DrillSession
-from firedrill.simulate import build_events
+from firedrill.simulate import build_recording
 from firedrill.simulate import play as play_events
 from firedrill.simulate import replay as replay_recording
 from firedrill.simulate import run_demo as play_demo
@@ -130,7 +130,8 @@ def start(
             console.print(str(exc))
             raise typer.Exit(code=1) from exc
     try:
-        headline = play_events(paths, build_events(paths, offline=True), bus=remote)
+        events, canary_key = build_recording(paths, offline=True)
+        headline = play_events(paths, events, bus=remote, canary_key=canary_key)
     except AdapterError as exc:
         console.print(str(exc))
         raise typer.Exit(code=1) from exc

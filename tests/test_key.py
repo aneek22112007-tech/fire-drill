@@ -16,7 +16,7 @@ from firedrill.cli import app
 from firedrill.commitment import commitment_hash, commitment_message, reveal_message, verify_reveal_text
 from firedrill.paths import DrillPaths
 from firedrill.service import create_app, running_auditor, uvicorn_command
-from firedrill.simulate import build_events, play
+from firedrill.simulate import build_recording, play
 from firedrill.store import AuditorStore
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -121,8 +121,8 @@ def test_play_writes_mappings_only_through_the_service(tmp_path, monkeypatch):
 
     monkeypatch.setattr(AuditorStore, "add_mapping", spy)
     paths = DrillPaths(root=tmp_path)
-    events = build_events(DrillPaths(root=ROOT), offline=True)
-    play(paths, events)
+    events, canary_key = build_recording(DrillPaths(root=ROOT), offline=True)
+    play(paths, events, canary_key=canary_key)
     assert calls == []
     store = AuditorStore(paths.drill_db)
     try:

@@ -3,7 +3,7 @@
 {"kind": "optin", "reviewer": "blake", "ts": "2026-11-05T15:00:01.000Z"}
 {"kind": "optin", "reviewer": "casey", "ts": "2026-11-05T15:00:02.000Z"}
 {"kind": "start", "salt": "fd-salt-78450969", "ts": "2026-11-05T15:00:03.000Z"}
-{"flaw_id": "removed-test", "id": "fd-56c71b74", "kind": "canary", "ts": "2026-11-05T15:00:04.000Z"}
+{"id": "fd-56c71b74", "kind": "canary", "ts": "2026-11-05T15:00:04.000Z"}
 {"kind": "adaptation", "reason": "Canary routed to avery (canary 1 for that reviewer). Ties go to the careful reviewer.", "reviewer": "avery", "rule": "route_canary", "ts": "2026-11-05T15:00:04.050Z"}
 {"expect": "reject", "kind": "command", "line": "/reject fd-56c71b74 the diff deletes a test", "reviewer": "avery", "ts": "2026-11-05T15:00:38.000Z"}
 {"action": {"function_body": null, "function_name": null, "key": "max_connections", "kind": "config_set", "test_body": null, "test_name": null, "value": 30, "version": null}, "complexity": 6, "id": "fd-e3e13350", "kind": "real", "risk": "high", "summary": "Raise max_connections to 30. It stays under the documented cap of 100.", "ts": "2026-11-05T15:00:38.050Z"}
@@ -11,12 +11,12 @@
 {"expect": "approve", "kind": "command", "line": "/approve fd-e3e13350", "reviewer": "blake", "ts": "2026-11-05T15:00:41.150Z"}
 {"action": {"function_body": null, "function_name": null, "key": null, "kind": "version_bump", "test_body": null, "test_name": null, "value": null, "version": "1.0.1"}, "complexity": 2, "id": "fd-ae0189e4", "kind": "real", "risk": "low", "summary": "Bump the sample service patch version to 1.0.1.", "ts": "2026-11-05T15:00:41.200Z"}
 {"expect": "approve", "kind": "command", "line": "/approve fd-ae0189e4", "reviewer": "avery", "ts": "2026-11-05T15:01:09.200Z"}
-{"flaw_id": "ignored-constraint", "id": "fd-00a6ce70", "kind": "canary", "ts": "2026-11-05T15:01:09.250Z"}
+{"id": "fd-00a6ce70", "kind": "canary", "ts": "2026-11-05T15:01:09.250Z"}
 {"kind": "adaptation", "reason": "Canary routed to blake (canary 1 for that reviewer). Ties go to the careful reviewer.", "reviewer": "blake", "rule": "route_canary", "ts": "2026-11-05T15:01:09.300Z"}
 {"expect": "approve", "kind": "command", "line": "/approve fd-00a6ce70", "reviewer": "blake", "ts": "2026-11-05T15:01:14.150Z"}
 {"action": {"function_body": null, "function_name": null, "key": "feature_01", "kind": "config_set", "test_body": null, "test_name": null, "value": true, "version": null}, "complexity": 3, "id": "fd-3dffdc5a", "kind": "real", "risk": "low", "summary": "Set config feature_01 to True for the sample service.", "ts": "2026-11-05T15:01:14.200Z"}
 {"expect": "approve", "kind": "command", "line": "/approve fd-3dffdc5a", "reviewer": "blake", "ts": "2026-11-05T15:01:18.500Z"}
-{"flaw_id": "destructive-migration", "id": "fd-b6c7f854", "kind": "canary", "ts": "2026-11-05T15:01:18.550Z"}
+{"id": "fd-b6c7f854", "kind": "canary", "ts": "2026-11-05T15:01:18.550Z"}
 {"kind": "adaptation", "reason": "Canary routed to casey (canary 1 for that reviewer). Ties go to the careful reviewer.", "reviewer": "casey", "rule": "route_canary", "ts": "2026-11-05T15:01:18.600Z"}
 {"expect": "reject", "kind": "command", "line": "/reject fd-b6c7f854 the diff drops a table and says there is no backup", "reviewer": "casey", "ts": "2026-11-05T15:01:40.550Z"}
 {"action": {"function_body": "def fn_01() -> int:\n    return 1\n", "function_name": "fn_01", "key": null, "kind": "add_function", "test_body": "def test_fn_01():\n    from samplelib.ops import fn_01\n    assert fn_01() == 1\n", "test_name": "test_fn_01", "value": null, "version": null}, "complexity": 4, "id": "fd-c606b6c3", "kind": "real", "risk": "medium", "summary": "Add fn_01 and a unit test that checks its return value.", "ts": "2026-11-05T15:01:40.600Z"}
@@ -24,7 +24,7 @@
 {"expect": "approve", "kind": "command", "line": "/approve fd-c606b6c3", "reviewer": "avery", "ts": "2026-11-05T15:02:14.600Z"}
 {"action": {"function_body": null, "function_name": null, "key": null, "kind": "version_bump", "test_body": null, "test_name": null, "value": null, "version": "1.0.2"}, "complexity": 2, "id": "fd-b1affa44", "kind": "real", "risk": "low", "summary": "Bump the sample service patch version to 1.0.2.", "ts": "2026-11-05T15:02:14.650Z"}
 {"expect": "approve", "kind": "command", "line": "/approve fd-b1affa44", "reviewer": "casey", "ts": "2026-11-05T15:02:27.650Z"}
-{"flaw_id": "wrong-branch", "id": "fd-8194fa26", "kind": "canary", "ts": "2026-11-05T15:02:27.700Z"}
+{"id": "fd-8194fa26", "kind": "canary", "ts": "2026-11-05T15:02:27.700Z"}
 {"kind": "adaptation", "reason": "Canary routed to avery (canary 2 for that reviewer). Ties go to the careful reviewer.", "reviewer": "avery", "rule": "route_canary", "ts": "2026-11-05T15:02:27.750Z"}
 {"expect": "reject", "kind": "command", "line": "/reject fd-8194fa26 the summary says branch main but the diff checks out prod-release", "reviewer": "avery", "ts": "2026-11-05T15:03:04.700Z"}
 {"action": {"function_body": null, "function_name": null, "key": "feature_02", "kind": "config_set", "test_body": null, "test_name": null, "value": true, "version": null}, "complexity": 3, "id": "fd-01600b32", "kind": "real", "risk": "low", "summary": "Set config feature_02 to True for the sample service.", "ts": "2026-11-05T15:03:04.750Z"}
@@ -45,13 +45,13 @@
 {"action": {"function_body": null, "function_name": null, "key": "max_connections", "kind": "config_set", "test_body": null, "test_name": null, "value": 40, "version": null}, "complexity": 6, "id": "fd-80a9a396", "kind": "real", "risk": "high", "summary": "Raise max_connections to 40. It stays under the documented cap of 100.", "ts": "2026-11-05T15:04:11.450Z"}
 {"kind": "adaptation", "reason": "High-risk item routed to avery, the reviewer with the oldest last decision.", "reviewer": "avery", "rule": "route_high_risk", "ts": "2026-11-05T15:04:11.500Z"}
 {"expect": "approve", "kind": "command", "line": "/approve fd-80a9a396", "reviewer": "avery", "ts": "2026-11-05T15:04:51.450Z"}
-{"flaw_id": "skipped-verification", "id": "fd-d586e535", "kind": "canary", "ts": "2026-11-05T15:04:51.500Z"}
+{"id": "fd-d586e535", "kind": "canary", "ts": "2026-11-05T15:04:51.500Z"}
 {"kind": "adaptation", "reason": "Canary routed to blake (canary 2 for that reviewer). Ties go to the careful reviewer.", "reviewer": "blake", "rule": "route_canary", "ts": "2026-11-05T15:04:51.550Z"}
 {"expect": "explained", "kind": "command", "line": "/explain fd-d586e535 I read the diff and it matches the summary.", "reviewer": "blake", "ts": "2026-11-05T15:04:51.600Z"}
 {"expect": "approve", "kind": "command", "line": "/approve fd-d586e535", "reviewer": "blake", "ts": "2026-11-05T15:04:55.800Z"}
 {"action": {"function_body": null, "function_name": null, "key": null, "kind": "version_bump", "test_body": null, "test_name": null, "value": null, "version": "1.0.4"}, "complexity": 2, "id": "fd-baed3268", "kind": "real", "risk": "low", "summary": "Bump the sample service patch version to 1.0.4.", "ts": "2026-11-05T15:04:55.850Z"}
 {"expect": "approve", "kind": "command", "line": "/approve fd-baed3268", "reviewer": "avery", "ts": "2026-11-05T15:05:23.850Z"}
-{"flaw_id": "wrong-channel", "id": "fd-7b21aad5", "kind": "canary", "ts": "2026-11-05T15:05:23.900Z"}
+{"id": "fd-7b21aad5", "kind": "canary", "ts": "2026-11-05T15:05:23.900Z"}
 {"kind": "adaptation", "reason": "Canary routed to casey (canary 2 for that reviewer). Ties go to the careful reviewer.", "reviewer": "casey", "rule": "route_canary", "ts": "2026-11-05T15:05:23.950Z"}
 {"expect": "approve", "kind": "command", "line": "/approve fd-7b21aad5", "reviewer": "casey", "ts": "2026-11-05T15:05:38.400Z"}
 {"action": {"function_body": null, "function_name": null, "key": "feature_04", "kind": "config_set", "test_body": null, "test_name": null, "value": true, "version": null}, "complexity": 3, "id": "fd-cb9871f8", "kind": "real", "risk": "low", "summary": "Set config feature_04 to True for the sample service.", "ts": "2026-11-05T15:05:38.450Z"}
@@ -60,7 +60,7 @@
 {"action": {"function_body": "def fn_04() -> int:\n    return 4\n", "function_name": "fn_04", "key": null, "kind": "add_function", "test_body": "def test_fn_04():\n    from samplelib.ops import fn_04\n    assert fn_04() == 4\n", "test_name": "test_fn_04", "value": null, "version": null}, "complexity": 4, "id": "fd-84182bb9", "kind": "real", "risk": "medium", "summary": "Add fn_04 and a unit test that checks its return value.", "ts": "2026-11-05T15:05:42.800Z"}
 {"kind": "adaptation", "reason": "Medium-risk item routed to avery (medium 2 for that reviewer) by round-robin.", "reviewer": "avery", "rule": "route_medium", "ts": "2026-11-05T15:05:42.850Z"}
 {"expect": "approve", "kind": "command", "line": "/approve fd-84182bb9", "reviewer": "avery", "ts": "2026-11-05T15:06:16.800Z"}
-{"flaw_id": "fake-secret", "id": "fd-3b601975", "kind": "canary", "ts": "2026-11-05T15:06:16.850Z"}
+{"id": "fd-3b601975", "kind": "canary", "ts": "2026-11-05T15:06:16.850Z"}
 {"kind": "adaptation", "reason": "Canary routed to avery (canary 3 for that reviewer). Ties go to the careful reviewer.", "reviewer": "avery", "rule": "route_canary", "ts": "2026-11-05T15:06:16.900Z"}
 {"expect": "reject", "kind": "command", "line": "/reject fd-3b601975 the diff contains an access key", "reviewer": "avery", "ts": "2026-11-05T15:06:53.850Z"}
 {"kind": "adaptation", "reason": "Batched 2 low-risk items so reviewers see them together.", "reviewer": null, "rule": "batch_low_risk", "ts": "2026-11-05T15:06:53.900Z"}
@@ -76,7 +76,7 @@
 {"action": {"function_body": null, "function_name": null, "key": null, "kind": "version_bump", "test_body": null, "test_name": null, "value": null, "version": "1.0.6"}, "complexity": 2, "id": "fd-12429f35", "kind": "real", "risk": "low", "summary": "Bump the sample service patch version to 1.0.6.", "ts": "2026-11-05T15:07:30.000Z"}
 {"expect": "explained", "kind": "command", "line": "/explain fd-12429f35 I read the diff and it matches the summary.", "reviewer": "blake", "ts": "2026-11-05T15:07:30.050Z"}
 {"expect": "approve", "kind": "command", "line": "/approve fd-12429f35", "reviewer": "blake", "ts": "2026-11-05T15:07:33.700Z"}
-{"flaw_id": "wrong-semver", "id": "fd-e0f331e9", "kind": "canary", "ts": "2026-11-05T15:07:33.750Z"}
+{"id": "fd-e0f331e9", "kind": "canary", "ts": "2026-11-05T15:07:33.750Z"}
 {"kind": "adaptation", "reason": "Canary routed to blake (canary 3 for that reviewer). Ties go to the careful reviewer.", "reviewer": "blake", "rule": "route_canary", "ts": "2026-11-05T15:07:33.800Z"}
 {"expect": "explained", "kind": "command", "line": "/explain fd-e0f331e9 I read the diff and it matches the summary.", "reviewer": "blake", "ts": "2026-11-05T15:07:33.850Z"}
 {"expect": "approve", "kind": "command", "line": "/approve fd-e0f331e9", "reviewer": "blake", "ts": "2026-11-05T15:07:37.450Z"}
@@ -123,14 +123,14 @@
 {"action": {"function_body": null, "function_name": null, "key": "max_connections", "kind": "config_set", "test_body": null, "test_name": null, "value": 60, "version": null}, "complexity": 6, "id": "fd-91013799", "kind": "real", "risk": "high", "summary": "Raise max_connections to 60. It stays under the documented cap of 100.", "ts": "2026-11-05T15:10:57.150Z"}
 {"kind": "adaptation", "reason": "High-risk item routed to avery, the reviewer with the oldest last decision.", "reviewer": "avery", "rule": "route_high_risk", "ts": "2026-11-05T15:10:57.200Z"}
 {"expect": "approve", "kind": "command", "line": "/approve fd-91013799", "reviewer": "avery", "ts": "2026-11-05T15:11:37.150Z"}
-{"flaw_id": "hallucinated-package", "id": "fd-481f7a7a", "kind": "canary", "ts": "2026-11-05T15:11:37.200Z"}
+{"id": "fd-481f7a7a", "kind": "canary", "ts": "2026-11-05T15:11:37.200Z"}
 {"kind": "adaptation", "reason": "Canary routed to casey (canary 3 for that reviewer). Ties go to the careful reviewer.", "reviewer": "casey", "rule": "route_canary", "ts": "2026-11-05T15:11:37.250Z"}
 {"expect": "explained", "kind": "command", "line": "/explain fd-481f7a7a I read the diff and it matches the summary.", "reviewer": "casey", "ts": "2026-11-05T15:11:37.300Z"}
 {"expect": "approve", "kind": "command", "line": "/approve fd-481f7a7a", "reviewer": "casey", "ts": "2026-11-05T15:11:51.700Z"}
 {"kind": "adaptation", "reason": "Batched 3 low-risk items so reviewers see them together.", "reviewer": null, "rule": "batch_low_risk", "ts": "2026-11-05T15:11:51.750Z"}
 {"action": {"function_body": null, "function_name": null, "key": null, "kind": "version_bump", "test_body": null, "test_name": null, "value": null, "version": "1.0.10"}, "complexity": 2, "id": "fd-c3611136", "kind": "real", "risk": "low", "summary": "Bump the sample service patch version to 1.0.10.", "ts": "2026-11-05T15:11:51.800Z"}
-{"flaw_id": "plan-diff-mismatch", "id": "fd-2cce8fac", "kind": "canary", "ts": "2026-11-05T15:11:51.850Z"}
-{"flaw_id": "off-by-one", "id": "fd-b303cdb1", "kind": "canary", "ts": "2026-11-05T15:11:51.900Z"}
+{"id": "fd-2cce8fac", "kind": "canary", "ts": "2026-11-05T15:11:51.850Z"}
+{"id": "fd-b303cdb1", "kind": "canary", "ts": "2026-11-05T15:11:51.900Z"}
 {"expect": "approve", "kind": "command", "line": "/approve fd-c3611136", "reviewer": "avery", "ts": "2026-11-05T15:12:19.800Z"}
 {"kind": "adaptation", "reason": "Canary routed to avery (canary 4 for that reviewer). Ties go to the careful reviewer.", "reviewer": "avery", "rule": "route_canary", "ts": "2026-11-05T15:12:19.850Z"}
 {"expect": "reject", "kind": "command", "line": "/reject fd-2cce8fac the summary adds fn_health but the diff does not", "reviewer": "avery", "ts": "2026-11-05T15:12:19.850Z"}
@@ -173,7 +173,7 @@
 {"expect": "approve", "kind": "command", "line": "/approve fd-362e93fd", "reviewer": "avery", "ts": "2026-11-05T15:15:13.350Z"}
 {"expect": "explained", "kind": "command", "line": "/explain fd-082f2860 I read the diff and it matches the summary.", "reviewer": "blake", "ts": "2026-11-05T15:14:45.400Z"}
 {"expect": "approve", "kind": "command", "line": "/approve fd-082f2860", "reviewer": "blake", "ts": "2026-11-05T15:14:49.700Z"}
-{"flaw_id": "staging-vs-prod", "id": "fd-7370a7ed", "kind": "canary", "ts": "2026-11-05T15:15:13.450Z"}
+{"id": "fd-7370a7ed", "kind": "canary", "ts": "2026-11-05T15:15:13.450Z"}
 {"kind": "adaptation", "reason": "Canary routed to casey (canary 4 for that reviewer). Ties go to the careful reviewer.", "reviewer": "casey", "rule": "route_canary", "ts": "2026-11-05T15:15:13.500Z"}
 {"expect": "explained", "kind": "command", "line": "/explain fd-7370a7ed I read the diff and it matches the summary.", "reviewer": "casey", "ts": "2026-11-05T15:15:13.550Z"}
 {"expect": "approve", "kind": "command", "line": "/approve fd-7370a7ed", "reviewer": "casey", "ts": "2026-11-05T15:15:29.450Z"}

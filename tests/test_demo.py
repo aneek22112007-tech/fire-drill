@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import subprocess
+
 import pytest
 import yaml
 from typer.testing import CliRunner
@@ -25,7 +27,7 @@ from firedrill.models import Action
 from firedrill.paths import DrillPaths
 from firedrill.report import LIMITS, headline
 from firedrill.repo_edit import preview_diff
-from firedrill.simulate import SEED, build_events, play, read_events, write_events
+from firedrill.simulate import SEED, build_recording, play, read_events, write_events
 from firedrill.store import AuditorStore
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -104,9 +106,11 @@ def test_room_template_matches_the_switch_language():
 
 def test_seed_events_are_deterministic(tmp_path):
     paths = DrillPaths(root=ROOT)
-    first = build_events(paths, offline=True, seed=SEED)
-    second = build_events(paths, offline=True, seed=SEED)
+    first, first_key = build_recording(paths, offline=True, seed=SEED)
+    second, second_key = build_recording(paths, offline=True, seed=SEED)
     assert first == second
+    assert first_key == second_key
+    assert len(first_key) == 12
     assert sum(1 for event in first if event["kind"] == "real") == 50
     assert sum(1 for event in first if event["kind"] == "canary") == 12
     target = tmp_path / "recorded.jsonl"
@@ -115,10 +119,22 @@ def test_seed_events_are_deterministic(tmp_path):
     assert read_events(ROOT / "demo" / "recorded_drill.jsonl") == first
 
 
+def test_recorded_drill_does_not_contain_flaw_id():
+    recording = ROOT / "demo" / "recorded_drill.jsonl"
+    found = subprocess.run(
+        ["grep", "-n", "flaw_id", str(recording)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert found.returncode == 1
+    assert found.stdout == ""
+
+
 def test_run_demo_and_replay_write_the_same_report(tmp_path):
     paths = DrillPaths(root=tmp_path)
-    events = build_events(DrillPaths(root=ROOT), offline=True)
-    first = play(paths, events)
+    events, canary_key = build_recording(DrillPaths(root=ROOT), offline=True)
+    first = play(paths, events, canary_key=canary_key)
     report = paths.report.read_text(encoding="utf-8")
     assert first in report
     assert "Injected 12 canaries across 62 items" in report
@@ -147,7 +163,7 @@ def test_run_demo_and_replay_write_the_same_report(tmp_path):
     assert first == headline(metrics)
     assert str(metrics.canaries_caught) in report
     other = DrillPaths(root=tmp_path / "replay")
-    second = play(other, events)
+    second = play(other, events, canary_key=canary_key)
     assert other.report.read_text(encoding="utf-8") == report
     assert second == first
     bus = LocalAdapter(paths.room_db)

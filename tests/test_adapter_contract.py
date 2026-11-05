@@ -13,7 +13,7 @@ from firedrill.adapters.switch import SwitchAdapter, messages_from_context
 from firedrill.metrics import compute_metrics
 from firedrill.models import RoomMessage
 from firedrill.paths import DrillPaths
-from firedrill.simulate import build_events, play
+from firedrill.simulate import build_recording, play
 from firedrill.store import AuditorStore
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -68,11 +68,11 @@ def _metrics(paths: DrillPaths):
 
 def test_same_drill_matches_on_local_and_fake_bus(tmp_path, monkeypatch):
     monkeypatch.setenv("WORKER_SECRET", "contract-worker-secret")
-    events = build_events(DrillPaths(root=ROOT), offline=True)
+    events, canary_key = build_recording(DrillPaths(root=ROOT), offline=True)
     local_root = DrillPaths(root=tmp_path / "local")
     fake_root = DrillPaths(root=tmp_path / "fake")
-    local = play(local_root, events)
-    fake = play(fake_root, events, bus=MemoryBus())
+    local = play(local_root, events, canary_key=canary_key)
+    fake = play(fake_root, events, bus=MemoryBus(), canary_key=canary_key)
     assert local == fake
     assert _metrics(local_root) == _metrics(fake_root)
     bus = LocalAdapter(local_root.room_db)

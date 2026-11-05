@@ -102,7 +102,53 @@ def write_events(path: Path, events: list[dict[str, object]]) -> None:
     path.write_text(rendered, encoding="utf-8")
 
 
+def recorded_key_path(paths: DrillPaths) -> Path:
+    return paths.auditor_dir / "recorded_key.json"
+
+
+def write_recorded_key(paths: DrillPaths, canary_key: dict[str, str]) -> None:
+    """Private request-id to flaw-id map. The public recording does not contain it."""
+
+    paths.ensure()
+    path = recorded_key_path(paths)
+    path.write_text(json.dumps(canary_key, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    os.chmod(path, 0o600)
+
+
+def read_recorded_key(paths: DrillPaths) -> dict[str, str]:
+    path = recorded_key_path(paths)
+    if not path.is_file():
+        raise RuntimeError(
+            "auditor_private/recorded_key.json is missing. "
+            "The recording does not include flaw ids. Run firedrill run-demo --offline first."
+        )
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise RuntimeError("auditor_private/recorded_key.json must be a JSON object")
+    return {str(request_id): str(flaw_id) for request_id, flaw_id in payload.items()}
+
+
+def build_recording(
+    paths: DrillPaths,
+    *,
+    offline: bool,
+    seed: int = SEED,
+) -> tuple[list[dict[str, object]], dict[str, str]]:
+    events, canary_key = _build_recording(paths, offline=offline, seed=seed)
+    return events, canary_key
+
+
 def build_events(paths: DrillPaths, *, offline: bool, seed: int = SEED) -> list[dict[str, object]]:
+    events, _canary_key = _build_recording(paths, offline=offline, seed=seed)
+    return events
+
+
+def _build_recording(
+    paths: DrillPaths,
+    *,
+    offline: bool,
+    seed: int,
+) -> tuple[list[dict[str, object]], dict[str, str]]:
     flaws = load_library(paths.library)
     if len(flaws) != CANARY_ITEMS:
         raise RuntimeError(f"canary library has {len(flaws)} flaws, expected {CANARY_ITEMS}")
@@ -268,13 +314,17 @@ def build_events(paths: DrillPaths, *, offline: bool, seed: int = SEED) -> list[
         pending.clear()
         clock = emit(held, "batch" if len(held) >= 2 else None, clock)
     events.append({"kind": "reveal", "ts": clock})
-    return events
+    canary_key = {
+        item.request_id: str(item.flaw_id) for item in items if item.is_canary and item.flaw_id
+    }
+    return events, canary_key
 
 
 def run_demo(paths: DrillPaths, *, offline: bool) -> str:
-    events = build_events(paths, offline=offline)
+    events, canary_key = build_recording(paths, offline=offline)
     write_events(paths.recorded, events)
-    return play(paths, read_events(paths.recorded))
+    write_recorded_key(paths, canary_key)
+    return play(paths, read_events(paths.recorded), canary_key=canary_key)
 
 
 def replay(paths: DrillPaths, recording: Path) -> str:
@@ -285,10 +335,13 @@ def play(
     paths: DrillPaths,
     events: list[dict[str, object]],
     bus: RoomBus | None = None,
+    canary_key: dict[str, str] | None = None,
 ) -> str:
     meta = next(event for event in events if event.get("kind") == "meta")
     key_bytes = base64.b64decode(str(meta["key_b64"]), validate=True)
     secret = os.environ.get("WORKER_SECRET", "").strip() or "firedrill-demo-worker-secret"
+    if canary_key is None:
+        canary_key = read_recorded_key(paths)
     _reset(paths)
     server = running_auditor(paths)
     base = server.__enter__()
@@ -344,7 +397,11 @@ def play(
                 )
                 continue
             if kind == "canary":
-                canary.post_flaw(flaws[str(event["flaw_id"])], request_id=str(event["id"]), ts=str(event["ts"]))
+                request_id = str(event["id"])
+                flaw_id = canary_key.get(request_id)
+                if flaw_id is None:
+                    raise RuntimeError(f"event {index}: no private flaw mapping for {request_id}")
+                canary.post_flaw(flaws[flaw_id], request_id=request_id, ts=str(event["ts"]))
                 continue
             if kind == "command":
                 result = _speak(bus, auditor, str(event["reviewer"]), str(event["line"]), str(event["ts"]))
@@ -403,7 +460,7 @@ def _real_action(
 
 def _post(item: Item, ts: str) -> dict[str, object]:
     if item.is_canary:
-        return {"kind": "canary", "id": item.request_id, "flaw_id": item.flaw_id, "ts": ts}
+        return {"kind": "canary", "id": item.request_id, "ts": ts}
     return {
         "kind": "real",
         "id": item.request_id,

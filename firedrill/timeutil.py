@@ -15,3 +15,7 @@ def format_ts(moment: datetime) -> str:
     return utc.strftime("%Y-%m-%dT%H:%M:%S.") + f"{utc.microsecond // 1000:03d}Z"
 
 
+def seconds_between(start: str, end: str) -> float:
+    return max(0.0, (parse_ts(end) - parse_ts(start)).total_seconds())
+
+

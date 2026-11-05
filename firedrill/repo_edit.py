@@ -22,3 +22,14 @@ def bump_patch(version: str) -> str:
     return f"{major}.{minor}.{patch + 1}"
 
 
+def parse_flat_config(text: str) -> dict[str, str | int | bool]:
+    data: dict[str, str | int | bool] = {}
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or ":" not in stripped:
+            continue
+        key, raw = stripped.split(":", 1)
+        data[key.strip()] = _coerce(raw.strip())
+    return data
+
+

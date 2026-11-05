@@ -140,3 +140,11 @@ def render_report(metrics: DrillMetrics, adaptations: list[dict[str, object]]) -
     return "\n".join(lines)
 
 
+def write_report(store: AuditorStore, path: Path) -> str:
+    metrics = compute_metrics(store.requests(), store.decisions())
+    text = render_report(metrics, store.adaptations())
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+    return headline(metrics)
+
+

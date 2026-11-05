@@ -44,3 +44,13 @@ def dump_flat_config(data: dict[str, str | int | bool]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _coerce(raw: str) -> str | int | bool:
+    if raw == "true":
+        return True
+    if raw == "false":
+        return False
+    if raw.isdigit():
+        return int(raw)
+    return raw
+
+

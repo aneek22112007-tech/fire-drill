@@ -19,3 +19,13 @@ def _coerce(raw: str) -> str | int | bool:
     return raw
 
 
+def load(path: Path | None = None) -> dict[str, str | int | bool]:
+    target = path or (repo_root() / "config.yaml")
+    data: dict[str, str | int | bool] = {}
+    for line in target.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or ":" not in stripped:
+            continue
+        key, raw = stripped.split(":", 1)
+        data[key.strip()] = _coerce(raw.strip())
+    return data

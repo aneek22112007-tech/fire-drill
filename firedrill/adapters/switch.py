@@ -108,3 +108,19 @@ def probe_switch() -> str:
 
 
 class SwitchAdapter:
+    def __init__(
+        self,
+        base_url: str,
+        agent_id: str,
+        token: str,
+        room_id: str,
+        connection_id: str | None = None,
+    ) -> None:
+        self.base_url = base_url.rstrip("/")
+        self.agent_id = agent_id
+        self.token = token
+        self.room_id = room_id
+        self.connection_id = connection_id
+        self._sent: list[RoomMessage] = []
+        self._ops: object | None = None
+

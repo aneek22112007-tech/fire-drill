@@ -67,3 +67,14 @@ class Item:
     flaw_id: str | None
 
 
+def demo_key_bytes(seed: int) -> bytes:
+    """A demo seal derived from the seed. It is revealed at the end of the drill."""
+
+    payload = {
+        "drill_key": hashlib.sha256(f"fire-drill-demo-{seed}".encode("utf-8")).hexdigest(),
+        "purpose": "fire-drill answer-key seal",
+        "version": 1,
+    }
+    return (json.dumps(payload, indent=2, sort_keys=True) + "\n").encode("utf-8")
+
+

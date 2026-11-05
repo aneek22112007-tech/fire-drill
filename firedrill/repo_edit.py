@@ -54,3 +54,34 @@ def _coerce(raw: str) -> str | int | bool:
     return raw
 
 
+def apply_action(repo: Path, action: Action) -> None:
+    if action.kind == "version_bump":
+        if not action.version:
+            raise ValueError("version_bump requires version")
+        (repo / "VERSION").write_text(action.version + "\n", encoding="utf-8")
+        return
+    if action.kind == "config_set":
+        if not action.key or action.value is None:
+            raise ValueError("config_set requires key and value")
+        path = repo / "config.yaml"
+        data = parse_flat_config(path.read_text(encoding="utf-8"))
+        data[action.key] = action.value
+        path.write_text(dump_flat_config(data), encoding="utf-8")
+        return
+    if action.kind == "add_function":
+        if not action.function_name or not action.function_body or not action.test_body:
+            raise ValueError("add_function requires function and test bodies")
+        ops = repo / "src" / "samplelib" / "ops.py"
+        existing = ops.read_text(encoding="utf-8")
+        marker = f"def {action.function_name}("
+        if marker not in existing:
+            ops.write_text(existing.rstrip() + "\n\n" + action.function_body.rstrip() + "\n", encoding="utf-8")
+        tests = repo / "tests" / "test_sample.py"
+        test_text = tests.read_text(encoding="utf-8")
+        test_marker = f"def {action.test_name}("
+        if action.test_name and test_marker not in test_text:
+            tests.write_text(test_text.rstrip() + "\n\n" + action.test_body.rstrip() + "\n", encoding="utf-8")
+        return
+    raise ValueError(f"unknown action {action.kind}")
+
+

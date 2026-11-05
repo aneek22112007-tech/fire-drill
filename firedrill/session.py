@@ -153,3 +153,10 @@ class DrillSession:
             ),
         )
 
+    def _review_times(self, reviewer: str) -> list[float]:
+        return [
+            decision.latency_s
+            for decision in self.store.decisions()
+            if decision.reviewer == reviewer and decision.action in {"approve", "reject"}
+        ]
+

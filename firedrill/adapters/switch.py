@@ -216,3 +216,9 @@ class SwitchAdapter:
     def read_channel(self, channel: str) -> list[RoomMessage]:
         return [message for message in self._sent if message.channel == channel]
 
+    def add_reaction(self, *, message_id: str, user: str, emoji: str, ts: str | None = None) -> None:
+        del message_id, user, emoji, ts
+        raise AdapterError(
+            "Switch reaction buttons are room commands in this drill. "
+            "Use /approve or /reject. No reaction endpoint was verified."
+        )

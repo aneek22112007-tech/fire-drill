@@ -42,3 +42,7 @@ The worker proposes real edits on `sample_repo/` (patch version bump, config cha
 
 `make setup-auditor` creates `auditor_private/` mode `0700` and, where the OS allows it without an interactive password, the `firedrill-auditor` user. The default path is a token-gated FastAPI service on `127.0.0.1`: the canary holds a write-only ingest token, and only the auditor token can read `key.json`. At start the auditor posts `SHA-256(key.json bytes + newline + salt)`. At the end it posts the key and the salt. Tests: worker and canary receive 401 on the key; the revealed commitment matches.
 
+### M5 — Consent and decisions
+
+The drill refuses to start until every configured human has sent `/optin`. Decisions are `/approve`, `/reject <reason>`, and `/explain`. Approving a canary never executes; that person gets a private DM with the flaw and its clue. Rejecting a canary gets a private "nice catch". The miss text never appears in the room log.
+

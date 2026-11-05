@@ -30,3 +30,17 @@ def coefficient_of_variation(values: list[float]) -> float | None:
     return (variance ** 0.5) / mean
 
 
+def pearson(xs: list[float], ys: list[float]) -> float | None:
+    if len(xs) < 2 or len(xs) != len(ys):
+        return None
+    mean_x = sum(xs) / len(xs)
+    mean_y = sum(ys) / len(ys)
+    numerator = sum((x - mean_x) * (y - mean_y) for x, y in zip(xs, ys, strict=True))
+    spread_x = sum((x - mean_x) ** 2 for x in xs) ** 0.5
+    spread_y = sum((y - mean_y) ** 2 for y in ys) ** 0.5
+    if spread_x == 0 or spread_y == 0:
+        return None
+    return numerator / (spread_x * spread_y)
+
+
+@dataclass

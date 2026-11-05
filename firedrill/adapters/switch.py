@@ -213,3 +213,6 @@ class SwitchAdapter:
         self.call_operation("read_context", {"room_id": self.room_id})
         return [message for message in self._sent if message.channel == "room"]
 
+    def read_channel(self, channel: str) -> list[RoomMessage]:
+        return [message for message in self._sent if message.channel == channel]
+

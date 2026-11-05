@@ -32,3 +32,22 @@ ROOT = Path(__file__).resolve().parents[1]
 runner = CliRunner()
 
 
+def test_careful_catches_every_flaw_and_approves_a_real_bump():
+    flaws = load_library(ROOT / "canaries" / "library.yaml")
+    obvious = {"fake-secret", "destructive-migration", "removed-test", "skipped-verification"}
+    for flaw in flaws:
+        summary = flaw.template.format(change=flaw.summary)
+        diff = flaw.diff.strip() + "\n"
+        action, reason = review("careful", summary, diff)
+        assert action == "reject", flaw.id
+        assert reason
+        average, _average_reason = review("average", summary, diff)
+        assert average == ("reject" if flaw.id in obvious else "approve")
+        assert review("rushed", summary, diff)[0] == "approve"
+    action = Action(kind="version_bump", version="1.0.1")
+    change, _risk, complexity = describe_action(action)
+    diff = preview_diff(ROOT / "sample_repo", action)
+    assert review("careful", voiced(change), diff) == ("approve", "")
+    assert latency_seconds("rushed", complexity) < 8
+
+

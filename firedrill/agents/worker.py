@@ -66,3 +66,18 @@ class Worker:
         return describe_action(action)
 
 
+def make_function(index: int) -> Action:
+    name = f"fn_{index:02d}"
+    return Action(
+        kind="add_function",
+        function_name=name,
+        function_body=f"def {name}() -> int:\n    return {index}\n",
+        test_name=f"test_{name}",
+        test_body=(
+            f"def test_{name}():\n"
+            f"    from samplelib.ops import {name}\n"
+            f"    assert {name}() == {index}\n"
+        ),
+    )
+
+

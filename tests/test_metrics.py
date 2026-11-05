@@ -109,3 +109,53 @@ def test_routing_and_batch_notes():
     assert "3" in batch.reason
 
 
+def test_flatness_triggers_explain_back(tmp_path, monkeypatch):
+    monkeypatch.setenv("WORKER_SECRET", "test-worker-secret")
+    repo = tmp_path / "repo"
+    shutil.copytree(ROOT / "sample_repo", repo)
+    bus = LocalAdapter(tmp_path / "room.db")
+    store = AuditorStore(tmp_path / "drill.db")
+    registry = WorkerRegistry(tmp_path / "registry.db", b"test-worker-secret")
+    session = DrillSession(
+        bus=bus,
+        store=store,
+        executor=Executor(registry, repo),
+        required=["blake"],
+        flaws={},
+        key_bytes=b"key\n",
+    )
+    worker = Worker(registry, bus, repo)
+    session.command("blake", "/optin", "2026-11-05T15:00:00.000Z")
+    session.start("salt", "2026-11-05T15:00:01.000Z")
+
+    first = worker.action_version_bump()
+    summary, risk, complexity = worker.describe(first)
+    opening = worker.propose(
+        first,
+        summary=summary,
+        risk=risk,
+        complexity=complexity,
+        request_id="fd-11111111",
+        ts="2026-11-05T15:01:00.000Z",
+    )
+    assert session.command("blake", f"/approve {opening.id}", "2026-11-05T15:01:03.000Z") == "approve"
+    assert store.adaptations()[0]["rule"] == "flatness_explain_back"
+
+    second = worker.action_config("feature_02", True)
+    summary, risk, complexity = worker.describe(second)
+    follow = worker.propose(
+        second,
+        summary=summary,
+        risk=risk,
+        complexity=complexity,
+        request_id="fd-22222222",
+        ts="2026-11-05T15:02:00.000Z",
+    )
+    assert session.command("blake", f"/approve {follow.id}", "2026-11-05T15:02:03.000Z") == "explain-required"
+    assert "feature_02" not in (repo / "config.yaml").read_text(encoding="utf-8")
+    assert session.command("blake", f"/explain {follow.id} the diff only sets a feature flag", "2026-11-05T15:02:04.000Z") == "explained"
+    assert session.command("blake", f"/approve {follow.id}", "2026-11-05T15:02:05.000Z") == "approve"
+    assert "feature_02: true" in (repo / "config.yaml").read_text(encoding="utf-8")
+    bus.close()
+    registry.close()
+    store.close()

@@ -200,3 +200,27 @@ def _probe(func) -> None:  # type: ignore[no-untyped-def]
 
 
 class _Live:
+    def __init__(self) -> None:
+        paths = default_paths()
+        paths.ensure()
+        if not paths.key_file.is_file():
+            raise typer.BadParameter("auditor_private/key.json is missing. Run make setup.")
+        secret = os.environ.get("WORKER_SECRET", "").strip()
+        if not secret:
+            raise typer.BadParameter("WORKER_SECRET is empty. Run make setup.")
+        self.bus = LocalAdapter(paths.room_db)
+        self.store = AuditorStore(paths.drill_db)
+        self.registry = WorkerRegistry(paths.registry_db, secret.encode("utf-8"))
+        flaws = {flaw.id: flaw for flaw in load_library(paths.library)}
+        session = DrillSession(
+            bus=self.bus,
+            store=self.store,
+            executor=Executor(self.registry, paths.work_repo if paths.work_repo.exists() else paths.sample_repo),
+            required=[row["id"] for row in REVIEWERS],
+            flaws=flaws,
+            key_bytes=paths.key_file.read_bytes(),
+        )
+        self.auditor = Auditor(session)
+        if self.store.meta("commitment"):
+            session.started = True
+

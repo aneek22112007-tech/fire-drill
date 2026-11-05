@@ -218,3 +218,11 @@ class AuditorStore:
             rows = self._conn.execute("SELECT reviewer FROM consent").fetchall()
         return {row["reviewer"] for row in rows}
 
+    def set_meta(self, key: str, value: str) -> None:
+        with self._lock:
+            self._conn.execute(
+                "INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)",
+                (key, value),
+            )
+            self._conn.commit()
+

@@ -45,3 +45,41 @@ def _decision(request_id: str, reviewer: str, action: str, latency: float) -> De
     )
 
 
+def test_metrics_on_a_handmade_fixture():
+    requests = [
+        _request("fd-00000001", canary=True, complexity=1, mast="3.2 No or Incomplete Verification"),
+        _request("fd-00000002", canary=True, complexity=2, mast="3.2 No or Incomplete Verification"),
+        _request("fd-00000003", canary=True, complexity=3, mast="1.1 Disobey Task Specification"),
+        _request("fd-00000004", canary=True, complexity=4, mast="1.1 Disobey Task Specification"),
+        _request("fd-00000005", canary=False, complexity=2, mast=None),
+        _request("fd-00000006", canary=False, complexity=5, mast=None),
+    ]
+    decisions = [
+        _decision("fd-00000001", "avery", "reject", 10),
+        _decision("fd-00000002", "avery", "approve", 20),
+        _decision("fd-00000003", "blake", "reject", 30),
+        _decision("fd-00000004", "blake", "approve", 40),
+        _decision("fd-00000005", "avery", "approve", 5),
+        _decision("fd-00000006", "blake", "approve", 15),
+    ]
+    metrics = compute_metrics(requests, decisions)
+    assert metrics.items == 6
+    assert metrics.canaries_injected == 4
+    assert metrics.canaries_caught == 2
+    assert metrics.catch_rate == 0.5
+    assert metrics.median_canary_s == 25
+    assert metrics.median_real_s == 10
+    expected = pearson([1, 2, 3, 4, 2, 5], [10, 20, 30, 40, 5, 15])
+    assert metrics.correlation == expected
+    assert expected is not None and abs(expected - 0.4689450951470155) < 1e-12
+    assert metrics.by_mast["3.2 No or Incomplete Verification"] == 0.5
+    assert metrics.by_mast["1.1 Disobey Task Specification"] == 0.5
+    avery = next(item for item in metrics.by_reviewer if item.reviewer == "avery")
+    assert avery.catch_rate == 0.5
+    assert avery.median_canary_s == 15
+    assert avery.median_real_s == 5
+    assert median([10, 20, 30, 40]) == 25
+    assert pearson([1, 2, 3, 4], [10, 20, 30, 40]) == pytest.approx(1)
+    assert coefficient_of_variation([10, 10, 10, 10, 10]) == 0
+
+

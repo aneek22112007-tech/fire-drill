@@ -155,3 +155,8 @@ class MattermostAdapter:
         self._sent.append(message)
         return message
 
+    def read_room(self) -> list[RoomMessage]:
+        """Messages this process posted. Listing history is not a verified call here."""
+
+        return [message for message in self._sent if message.channel == "room"]
+

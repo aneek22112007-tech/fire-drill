@@ -18,3 +18,15 @@ def median(values: list[float]) -> float | None:
     return (ordered[middle - 1] + ordered[middle]) / 2.0
 
 
+def coefficient_of_variation(values: list[float]) -> float | None:
+    """Population coefficient of variation. A constant series is 0."""
+
+    if not values:
+        return None
+    mean = sum(values) / len(values)
+    if mean == 0:
+        return None
+    variance = sum((value - mean) ** 2 for value in values) / len(values)
+    return (variance ** 0.5) / mean
+
+

@@ -79,3 +79,26 @@ def test_mattermost_instructions_do_not_guess_a_password():
     assert "admin123" not in text
 
 
+def test_room_template_matches_the_switch_language():
+    document = yaml.safe_load((ROOT / "switch" / "room-template.yaml").read_text(encoding="utf-8"))
+    assert document["version"] == 1
+    agents = document["agents"]
+    assert {agent["name"] for agent in agents} == {"worker", "canary", "auditor"}
+    addressing = {agent["name"]: agent["addressing"] for agent in agents}
+    assert addressing == {"worker": "anyone", "canary": "owner", "auditor": "owner"}
+    allowed = {"claude", "codex", "opencode", "antigravity", "cursor"}
+    for agent in agents:
+        assert agent["instructions"].strip()
+        assert agent["auto_approve"] is False
+        assert agent["provider"] == "{provider}"
+        assert agent["location"] == "{location}"
+        assert agent["directory"].strip()
+    assert set(document["params"]["provider"]["default"]) <= allowed
+    instructions = document["room"]["instructions"].lower()
+    assert "canaries never execute" in instructions
+    assert "only the auditor accesses the answer key" in instructions
+    roles = {role["name"]: role for role in document["room"]["roles"]}
+    assert roles["answer-key"]["exclusive"] is True
+    assert "canaries never execute" in document["kickoff"].lower()
+
+

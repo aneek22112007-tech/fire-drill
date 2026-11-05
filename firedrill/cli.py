@@ -170,3 +170,24 @@ def verify() -> None:
     console.print(f"commitment ok sha256={detail}")
 
 
+def _up_local() -> None:
+    paths = default_paths()
+    paths.ensure()
+    bus = LocalAdapter(paths.room_db)
+    try:
+        existing = bus.read_room()
+        if not existing:
+            bus.post(
+                author="system",
+                role="system",
+                body="Fire Drill local room is open. Messages keep author, role, timestamp, and thread.",
+            )
+            existing = bus.read_room()
+        console.print(f"local room ready: {paths.room_db}")
+        console.print(f"messages: {len(existing)}")
+        last = existing[-1]
+        console.print(f"last seq={last.seq} author={last.author} role={last.role} ts={last.ts}")
+    finally:
+        bus.close()
+
+

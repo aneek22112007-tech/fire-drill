@@ -20,3 +20,18 @@ flaws:
       +host: prod-db.internal
        max_connections: 20
 
+  - id: hallucinated-package
+    title: Import of a package that does not exist
+    mast_mode: "2.6 Reasoning-Action Mismatch"
+    template: "Review this sample-service change before it lands. {change}"
+    summary: "Add the helper import the new health check needs."
+    tell: "The diff imports flask_not_a_real_pkg, which is not part of this repository."
+    risk: medium
+    complexity: 3
+    diff: |
+      --- a/src/samplelib/ops.py
+      +++ b/src/samplelib/ops.py
+      @@ -1,3 +1,4 @@
+      +import flask_not_a_real_pkg
+       """Operations the worker extends one function at a time."""
+

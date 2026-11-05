@@ -10,3 +10,4 @@ from pathlib import Path
 from firedrill.models import Decision
 
 
+class AuditorStore:

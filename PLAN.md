@@ -46,3 +46,7 @@ The worker proposes real edits on `sample_repo/` (patch version bump, config cha
 
 The drill refuses to start until every configured human has sent `/optin`. Decisions are `/approve`, `/reject <reason>`, and `/explain`. Approving a canary never executes; that person gets a private DM with the flaw and its clue. Rejecting a canary gets a private "nice catch". The miss text never appears in the room log.
 
+### M6 — Metrics and adaptation
+
+Per reviewer and overall: canary catch rate, median time-to-decision on canaries versus real items, Pearson correlation of review time with complexity, and a flatness flag (coefficient of variation under 0.25 with at least 5 decisions, or a median under 8 seconds). Adaptations: flatness forces explain-back before the next approval; high-risk items go to the reviewer with the oldest last decision; low-risk items are batched. Every adaptation is logged with a reason.
+

@@ -26,3 +26,30 @@ def _write_private(tmp_path: Path) -> tuple[Path, Path, Path, bytes]:
     return key_file, tokens_file, private / "drill.db", key_bytes
 
 
+def test_worker_and_canary_cannot_read_the_key(tmp_path):
+    key_file, tokens_file, drill_db, key_bytes = _write_private(tmp_path)
+    client = TestClient(create_app(key_file, tokens_file, drill_db))
+
+    worker = client.get("/key")
+    assert worker.status_code == 401
+
+    canary = client.get("/key", headers={"Authorization": "Bearer ingest-token"})
+    assert canary.status_code == 401
+
+    posted = client.post(
+        "/mappings",
+        headers={"Authorization": "Bearer ingest-token"},
+        json={"request_id": "fd-aabbccdd", "flaw_id": "fake-secret"},
+    )
+    assert posted.status_code == 201
+    listed = client.get(
+        "/mappings/fd-aabbccdd",
+        headers={"Authorization": "Bearer ingest-token"},
+    )
+    assert listed.status_code == 401
+
+    auditor = client.get("/key", headers={"Authorization": "Bearer auditor-token"})
+    assert auditor.status_code == 200
+    assert auditor.json()["bytes"].encode("utf-8") == key_bytes
+
+

@@ -11,3 +11,7 @@ def commitment_hash(key_bytes: bytes, salt: str) -> str:
     return hashlib.sha256(key_bytes + b"\n" + salt.encode("utf-8")).hexdigest()
 
 
+def commitment_message(digest: str) -> str:
+    return f"COMMITMENT sha256={digest}"
+
+

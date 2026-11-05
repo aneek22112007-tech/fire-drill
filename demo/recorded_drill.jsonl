@@ -178,3 +178,23 @@
 {"flaw_id": "fake-secret", "id": "fd-9c6bcd23", "kind": "canary", "ts": "2026-11-05T15:12:41.400Z"}
 {"kind": "adaptation", "reason": "High-risk item routed to casey, the reviewer with the oldest last decision.", "reviewer": "casey", "rule": "route_high_risk", "ts": "2026-11-05T15:12:41.450Z"}
 {"expect": "reject", "kind": "command", "line": "/reject fd-9c6bcd23 the diff contains an access key", "reviewer": "casey", "ts": "2026-11-05T15:12:58.900Z"}
+{"flaw_id": "removed-test", "id": "fd-826b52d0", "kind": "canary", "ts": "2026-11-05T15:12:58.950Z"}
+{"kind": "adaptation", "reason": "High-risk item routed to avery, the reviewer with the oldest last decision.", "reviewer": "avery", "rule": "route_high_risk", "ts": "2026-11-05T15:12:59.000Z"}
+{"expect": "reject", "kind": "command", "line": "/reject fd-826b52d0 the diff deletes a test", "reviewer": "avery", "ts": "2026-11-05T15:13:32.950Z"}
+{"action": {"function_body": null, "function_name": null, "key": null, "kind": "version_bump", "test_body": null, "test_name": null, "value": null, "version": "1.0.13"}, "complexity": 2, "id": "fd-cdaa4f7b", "kind": "real", "risk": "low", "summary": "Bump the sample service patch version to 1.0.13.", "ts": "2026-11-05T15:13:33.000Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-cdaa4f7b I read the diff and it matches the summary.", "reviewer": "blake", "ts": "2026-11-05T15:13:33.050Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-cdaa4f7b", "reviewer": "blake", "ts": "2026-11-05T15:13:36.700Z"}
+{"flaw_id": "wrong-branch", "id": "fd-fdd3a2ef", "kind": "canary", "ts": "2026-11-05T15:13:36.750Z"}
+{"kind": "adaptation", "reason": "High-risk item routed to casey, the reviewer with the oldest last decision.", "reviewer": "casey", "rule": "route_high_risk", "ts": "2026-11-05T15:13:36.800Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-fdd3a2ef I read the diff and it matches the summary.", "reviewer": "casey", "ts": "2026-11-05T15:13:36.850Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-fdd3a2ef", "reviewer": "casey", "ts": "2026-11-05T15:13:54.250Z"}
+{"action": {"function_body": null, "function_name": null, "key": "feature_13", "kind": "config_set", "test_body": null, "test_name": null, "value": true, "version": null}, "complexity": 3, "id": "fd-fbc81f3f", "kind": "real", "risk": "low", "summary": "Set config feature_13 to True for the sample service.", "ts": "2026-11-05T15:13:54.300Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-fbc81f3f I read the diff and it matches the summary.", "reviewer": "casey", "ts": "2026-11-05T15:13:54.350Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-fbc81f3f", "reviewer": "casey", "ts": "2026-11-05T15:14:08.800Z"}
+{"action": {"function_body": "def fn_13() -> int:\n    return 13\n", "function_name": "fn_13", "key": null, "kind": "add_function", "test_body": "def test_fn_13():\n    from samplelib.ops import fn_13\n    assert fn_13() == 13\n", "test_name": "test_fn_13", "value": null, "version": null}, "complexity": 4, "id": "fd-d023bf99", "kind": "real", "risk": "medium", "summary": "Add fn_13 and a unit test that checks its return value.", "ts": "2026-11-05T15:14:08.850Z"}
+{"kind": "adaptation", "reason": "Medium-risk item routed to avery by round-robin.", "reviewer": "avery", "rule": "route_medium", "ts": "2026-11-05T15:14:08.900Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-d023bf99 I read the diff and it matches the summary.", "reviewer": "avery", "ts": "2026-11-05T15:14:08.950Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-d023bf99", "reviewer": "avery", "ts": "2026-11-05T15:14:42.850Z"}
+{"kind": "adaptation", "reason": "Batched 2 low-risk items so reviewers see them together.", "reviewer": null, "rule": "batch_low_risk", "ts": "2026-11-05T15:14:42.900Z"}
+{"action": {"function_body": null, "function_name": null, "key": null, "kind": "version_bump", "test_body": null, "test_name": null, "value": null, "version": "1.0.14"}, "complexity": 2, "id": "fd-0e0cbab0", "kind": "real", "risk": "low", "summary": "Bump the sample service patch version to 1.0.14.", "ts": "2026-11-05T15:14:42.950Z"}
+{"action": {"function_body": null, "function_name": null, "key": "feature_14", "kind": "config_set", "test_body": null, "test_name": null, "value": true, "version": null}, "complexity": 3, "id": "fd-b82b05c7", "kind": "real", "risk": "low", "summary": "Set config feature_14 to True for the sample service.", "ts": "2026-11-05T15:14:43.000Z"}

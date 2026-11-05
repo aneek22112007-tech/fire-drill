@@ -59,3 +59,44 @@ class LocalAdapter:
     def close(self) -> None:
         self._conn.close()
 
+    def post(
+        self,
+        *,
+        author: str,
+        role: str,
+        body: str,
+        thread_id: str | None = None,
+        channel: str = "room",
+        ts: str | None = None,
+    ) -> RoomMessage:
+        message = RoomMessage(
+            seq=0,
+            id=uuid.uuid4().hex,
+            ts=ts or _now(),
+            author=author,
+            role=role,
+            thread_id=thread_id,
+            body=body,
+            channel=channel,
+        )
+        with self._lock:
+            cursor = self._conn.execute(
+                """
+                INSERT INTO messages (id, ts, author, role, thread_id, body, channel)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    message.id,
+                    message.ts,
+                    message.author,
+                    message.role,
+                    message.thread_id,
+                    message.body,
+                    message.channel,
+                ),
+            )
+            self._conn.commit()
+            seq = int(cursor.lastrowid)
+        message.seq = seq
+        return message
+

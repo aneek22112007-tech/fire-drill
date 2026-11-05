@@ -75,3 +75,9 @@ def note_low_risk_batch(count: int) -> AdaptationNote:
     )
 
 
+def note_round_robin(reviewer: str) -> AdaptationNote:
+    return AdaptationNote(
+        rule="route_medium",
+        reviewer=reviewer,
+        reason=f"Medium-risk item routed to {reviewer} by round-robin.",
+    )

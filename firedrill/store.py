@@ -192,3 +192,11 @@ class AuditorStore:
             for row in rows
         ]
 
+    def record_adaptation(self, *, ts: str, rule: str, reason: str, reviewer: str | None = None) -> None:
+        with self._lock:
+            self._conn.execute(
+                "INSERT INTO adaptations (ts, rule, reviewer, reason) VALUES (?, ?, ?, ?)",
+                (ts, rule, reviewer, reason),
+            )
+            self._conn.commit()
+

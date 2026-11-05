@@ -182,3 +182,30 @@ class DrillSession:
         self.store.set_meta("revealed", "1")
         return body
 
+    def sync(self) -> None:
+        for message in self.bus.read_room():
+            if message.seq <= self._seen_seq:
+                continue
+            self._seen_seq = message.seq
+            parsed = parse_approval(message.body)
+            if parsed is None:
+                continue
+            flaw_id = self.store.mapping_for(parsed.id)
+            flaw = self.flaws.get(flaw_id) if flaw_id else None
+            self.store.upsert_request(
+                request_id=parsed.id,
+                summary=parsed.summary,
+                diff=parsed.diff,
+                risk=parsed.risk,
+                complexity=parsed.complexity,
+                created_ts=message.ts,
+                flaw_id=flaw_id,
+                mast_mode=flaw.mast_mode if flaw else None,
+            )
+        for request_id, flaw_id in self.store.mappings().items():
+            flaw = self.flaws.get(flaw_id)
+            if flaw is None:
+                continue
+            self.store.add_mapping(request_id, flaw_id)
+            self.store.set_mast(request_id, flaw.mast_mode)
+

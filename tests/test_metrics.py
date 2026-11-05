@@ -83,3 +83,15 @@ def test_metrics_on_a_handmade_fixture():
     assert coefficient_of_variation([10, 10, 10, 10, 10]) == 0
 
 
+def test_flatness_rules():
+    assert is_flat([2, 2, 2, 2, 2]) is True
+    assert is_flat([10, 10, 10, 10, 10]) is True
+    assert is_flat([10, 10, 10, 10]) is False
+    assert is_flat([7]) is True
+    assert is_flat([9]) is False
+    assert is_flat([30, 40, 50, 60, 70]) is False
+    spread = [30, 32, 34, 36, 38]
+    assert coefficient_of_variation(spread) < 0.25
+    assert is_flat(spread) is True
+
+

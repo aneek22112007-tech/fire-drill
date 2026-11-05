@@ -12,3 +12,14 @@ class AdapterError(RuntimeError):
 
 
 class RoomBus(Protocol):
+    def post(
+        self,
+        *,
+        author: str,
+        role: str,
+        body: str,
+        thread_id: str | None = None,
+        channel: str = "room",
+        ts: str | None = None,
+    ) -> RoomMessage: ...
+

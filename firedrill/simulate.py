@@ -91,3 +91,9 @@ def read_events(path: Path) -> list[dict[str, object]]:
     return events
 
 
+def write_events(path: Path, events: list[dict[str, object]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    rendered = "".join(json.dumps(event, sort_keys=True) + "\n" for event in events)
+    path.write_text(rendered, encoding="utf-8")
+
+

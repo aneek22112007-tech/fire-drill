@@ -182,3 +182,17 @@ flaws:
       +    return len(range(n + 1))
            return "ok"
 
+  - id: plan-diff-mismatch
+    title: The summary adds a function the diff does not add
+    mast_mode: "2.6 Reasoning-Action Mismatch"
+    template: "Review this sample-service change before it lands. {change}"
+    summary: "Add function fn_health that returns ok."
+    tell: "The summary promises fn_health, but the diff only deletes the README title."
+    risk: low
+    complexity: 2
+    diff: |
+      --- a/README.md
+      +++ b/README.md
+      @@ -1,2 +1,1 @@
+      -# Sample service
+       A toy repository the Fire Drill worker edits.

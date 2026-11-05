@@ -140,3 +140,14 @@ class LocalAdapter:
         return [(row["user"], row["emoji"]) for row in rows]
 
 
+def _row_message(row: sqlite3.Row) -> RoomMessage:
+    return RoomMessage(
+        seq=int(row["seq"]),
+        id=row["id"],
+        ts=row["ts"],
+        author=row["author"],
+        role=row["role"],
+        thread_id=row["thread_id"],
+        body=row["body"],
+        channel=row["channel"],
+    )

@@ -178,3 +178,34 @@ class SwitchAdapter:
             return body
         return {"result": body}
 
+    def post(
+        self,
+        *,
+        author: str,
+        role: str,
+        body: str,
+        thread_id: str | None = None,
+        channel: str = "room",
+        ts: str | None = None,
+    ) -> RoomMessage:
+        if channel == "room":
+            self.post_room(body)
+        else:
+            # Keys that the live schema does not list are refused by filter_arguments.
+            self.call_operation(
+                "send_targeted_message",
+                {"room_id": self.room_id, "content": body, "target": channel},
+            )
+        message = RoomMessage(
+            seq=len(self._sent) + 1,
+            id=f"switch-{len(self._sent) + 1}",
+            ts=ts or "",
+            author=author,
+            role=role,
+            thread_id=thread_id,
+            body=body,
+            channel=channel,
+        )
+        self._sent.append(message)
+        return message
+

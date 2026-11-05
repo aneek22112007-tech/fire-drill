@@ -119,3 +119,19 @@ class DrillSession:
         self._arm_flatness(reviewer, ts)
         return parsed.name
 
+    def react(self, reviewer: str, message_id: str, emoji: str, ts: str) -> str:
+        """Map Mattermost-style reactions onto approve and reject."""
+
+        self.bus.add_reaction(message_id=message_id, user=reviewer, emoji=emoji, ts=ts)
+        body = self._message_body(message_id)
+        if body is None:
+            return "unknown"
+        parsed = parse_approval(body)
+        if parsed is None:
+            return "unknown"
+        if emoji in {"white_check_mark", "+1", "approve"}:
+            return self.command(reviewer, f"/approve {parsed.id}", ts)
+        if emoji in {"x", "-1", "reject"}:
+            return self.command(reviewer, f"/reject {parsed.id} rejected by reaction", ts)
+        return "ignored"
+

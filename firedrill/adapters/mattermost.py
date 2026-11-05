@@ -70,3 +70,10 @@ def probe_mattermost() -> str:
 
 
 class MattermostAdapter:
+    def __init__(self, base_url: str, token: str, channel_id: str, user_id: str) -> None:
+        self.base_url = base_url.rstrip("/")
+        self.token = token
+        self.channel_id = channel_id
+        self.user_id = user_id
+        self._sent: list[RoomMessage] = []
+

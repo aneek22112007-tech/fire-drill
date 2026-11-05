@@ -263,3 +263,9 @@ class DrillSession:
                 return message.id
         return None
 
+    def _message_body(self, message_id: str) -> str | None:
+        for message in self.bus.read_room():
+            if message.id == message_id:
+                return message.body
+        return None
+

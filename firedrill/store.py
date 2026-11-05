@@ -172,3 +172,23 @@ class AuditorStore:
             )
             self._conn.commit()
 
+    def decisions(self) -> list[Decision]:
+        with self._lock:
+            rows = self._conn.execute(
+                """
+                SELECT request_id, reviewer, action, reason, timestamp, latency_s
+                FROM decisions ORDER BY id
+                """
+            ).fetchall()
+        return [
+            Decision(
+                request_id=row["request_id"],
+                reviewer=row["reviewer"],
+                action=row["action"],
+                reason=row["reason"],
+                timestamp=row["timestamp"],
+                latency_s=row["latency_s"],
+            )
+            for row in rows
+        ]
+

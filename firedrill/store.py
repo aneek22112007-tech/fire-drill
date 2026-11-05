@@ -200,3 +200,8 @@ class AuditorStore:
             )
             self._conn.commit()
 
+    def adaptations(self) -> list[dict[str, object]]:
+        with self._lock:
+            rows = self._conn.execute("SELECT * FROM adaptations ORDER BY id").fetchall()
+        return [dict(row) for row in rows]
+

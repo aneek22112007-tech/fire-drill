@@ -56,4 +56,4 @@ Per reviewer and overall: canary catch rate, median time-to-decision on canaries
 
 ### M8 — Demo, Switch template, README
 
-`firedrill run-demo --offline` runs 50 real items and 12 canaries with three simulated reviewers in under two minutes. `firedrill replay` reproduces that report from `demo/recorded_drill.jsonl`. `switch/room-template.yaml` follows the documented template language. The README has the pitch, five-command quick start, architecture diagram, answer-key threat model, citations, limits, and a three-minute demo script.
+`firedrill run-demo --offline` runs 50 real items and 12 canaries with three simulated reviewers in under two minutes. `firedrill replay` reproduces that report from `demo/recorded_drill.jsonl`. `switch/room-template.yaml` is template language version 1 and defines the room, roles, and instructions for three external bots. It does not create Console coding agents, so it has no provider or directory. The README has the pitch, five-command quick start, architecture diagram, answer-key threat model, citations, limits, and a three-minute demo script.

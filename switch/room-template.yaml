@@ -1,84 +1,45 @@
-# Fire Drill room template, Switch template language version 1.
+# Fire Drill room. Switch template language version 1.
 # Reference: https://github.com/sandbox-quantum/switch/blob/main/docs/TEMPLATES.md
+# Agent join steps: https://docs.switchagents.ai/switch-rooms/internals/agent-protocol
 #
-# The provider, location, and directory fields are required by that language so
-# Switch Console can place a coding agent on a machine. They are not the Fire
-# Drill worker, canary, or auditor. Those three run as the Python processes in
-# this repository. auto_approve is false, and auto_mode is false, so a Console
-# agent cannot apply a tool call on its own. The Python executor applies a
-# change only when the id is in the worker HMAC registry. Canaries are never
-# in that registry.
+# This document creates a room, its roles, and its instructions. It does not
+# create agents. The template language requires provider, location or machine,
+# and directory only for agents a template creates, and those fields place a
+# Console coding agent (claude, codex, opencode, antigravity, cursor). The
+# worker, canary, and auditor are external Fire Drill processes, so those
+# fields are absent on purpose. A run stops if the three names below are not
+# already registered on the server.
 #
-# Addressing uses the template form (owner, owner-agents, anyone), which is
-# who may talk to the agent. The canary and the auditor are owner-only. The
-# worker is anyone, so reviewers can reply in the room. Custom agents that
-# speak the agent protocol still register with POST /agents; this document
-# does not invent operation argument names.
+# Join each bot once, before you use this template. Do not call
+# POST /agents/register-known. That route registers only the agent types
+# Switch Console runs.
+#
+# 1. Create a registration API key on the Gateway API Keys page. The person
+#    who creates it becomes the bot's owner.
+# 2. POST /agents with that key as Authorization: Bearer. Required body
+#    fields are name, description, connector_type, and integration_profile.
+#    integration_profile requires connection_model, message_exchange, and
+#    pre_invocation_mediation, post_invocation_mediation, and event_reporting
+#    (send [] for those three unless you need them). Names must match
+#    ^[a-z0-9][a-z0-9._-]*$ : worker, canary, auditor. The response is
+#    {id, api_key} and the API key is returned once.
+#    This repo's adapter does not open the WebSocket, so connection_model
+#    session_passive matches an agent that reads room context when it polls.
+#    message_exchange is true.
+# 3. A new agent answers its owner and nobody else. Leave the canary and the
+#    auditor there. For the worker, call update_agent_detail with the bot's
+#    own API key (no connection id is required):
+#    POST /agents/{agent_id}/ops/update_agent_detail
+#    {"agent_id": "<agent_id>", "addressing": "anyone"}
+#    The protocol values are owner_only, owner_and_owner_agents, and anyone.
+#    The template words owner, owner-agents, and anyone apply to agents the
+#    template creates. This document creates none.
+# 4. Use this template. room.agents names the three bots. Switch adds those
+#    existing agents. It does not install a provider or a directory for them.
+#
+# None of these calls were made against a live Switch server from this repo.
 
 version: 1
-
-params:
-  provider:
-    type: provider
-    label: Coding agent Switch Console may place
-    description: Required by the template language. The drill itself is the Python package.
-    default: [claude, codex, opencode]
-    input: advanced
-  location:
-    type: location
-    label: Machine
-    default: local
-    input: advanced
-
-agents:
-  - name: worker
-    display_name: Worker
-    description: Proposes real sample-repo edits and waits for approval.
-    provider: "{provider}"
-    location: "{location}"
-    directory: "{$agents_dir}/fire-drill-worker"
-    addressing: anyone
-    auto_approve: false
-    auto_mode: false
-    instructions: |
-      You are the Fire Drill worker. Propose real, safe edits to the sample
-      service: a patch version bump, a config change inside the documented
-      caps, or a new function with a unit test. Post an approval request and
-      wait. Do not apply the change yourself. Do not claim a request was a
-      canary. The executor, not you, applies an id, and only when that id is
-      in the worker registry.
-
-  - name: canary
-    display_name: Canary
-    description: Posts flawed approval requests that must never execute.
-    provider: "{provider}"
-    location: "{location}"
-    directory: "{$agents_dir}/fire-drill-canary"
-    addressing: owner
-    auto_approve: false
-    auto_mode: false
-    instructions: |
-      You are the Fire Drill canary. Post approval requests in the same shape
-      and voice as the worker. Send the request-id to flaw-id mapping only to
-      the auditor, then keep no copy. Never execute a request. Never label a
-      message as a canary. Never read the answer key.
-
-  - name: auditor
-    display_name: Auditor
-    description: Holds the answer key, scores reviewers, and writes the report.
-    provider: "{provider}"
-    location: "{location}"
-    directory: "{$agents_dir}/fire-drill-auditor"
-    addressing: owner
-    auto_approve: false
-    auto_mode: false
-    instructions: |
-      You are the Fire Drill auditor. You alone read the answer key. At the
-      start, post the SHA-256 commitment. At the end, post the key and the
-      salt. Log every decision. When a reviewer approves a canary, send that
-      person a private message with the flaw and its clue. A rejection gets a
-      private note that they caught it. Do not put those clues in the room.
-      Canaries never execute. Write the report from the recorded decisions.
 
 room:
   name: Fire Drill
@@ -92,6 +53,8 @@ room:
     or /explain in one sentence when explain-back is on. The worker and the
     canary use the same public request format so a reviewer cannot filter on
     the author.
+    Addressing is set on each bot when it registers, not in this room. The
+    worker answers anyone. The canary and the auditor answer their owner only.
   agents:
     - worker
     - canary

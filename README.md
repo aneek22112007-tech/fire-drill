@@ -52,6 +52,32 @@ Narration you can read over those commands:
 
 `firedrill replay demo/recorded_drill.jsonl` repeats that drill from the recording. The recording has no flaw ids. Replay reads the request-to-flaw map from `auditor_private/recorded_key.json`, which `run-demo` writes and git does not track. A live room uses `firedrill consent <reviewer>` (the person types `/optin`) and then `firedrill start --adapter local|mattermost|switch`. That command posts the approval requests, reads `/approve`, `/reject`, and `/explain` from the adapter, and sends the private canary reveals on the same adapter.
 
+## Running on Switch
+
+The room template is `switch/room-template.yaml`. It is template language version 1 and it creates the room, the roles, and the instructions. It does not create agents, and it has no `provider`, `location`, or `directory`. Those fields are how Switch Console places a coding agent, and the Fire Drill worker, canary, and auditor are external processes.
+
+Register the three bots before you use the template. The steps below are the ones published in the agent protocol. They were not run against a live server here.
+
+1. Set `SWITCH_BASE_URL` to the bridge address. `GET /health` is the public probe. A 401 means the host is right and the path is wrong.
+2. On the Gateway **API Keys** page, create a key of type `registration`. Do not call `POST /agents/register-known`. That route registers only the agent types Switch Console runs.
+3. Register each bot once with `POST /agents` and that key as `Authorization: Bearer`. The body needs `name`, `description`, `connector_type`, and `integration_profile`. The profile needs `connection_model`, `message_exchange`, `pre_invocation_mediation`, `post_invocation_mediation`, and `event_reporting` (send `[]` for those three unless you need them). Use the names `worker`, `canary`, and `auditor`. The response is `{id, api_key}`, and the API key is shown once. This adapter does not open `/agents/{agent_id}/connection/ws`, so `connection_model` `session_passive` matches a bot that reads the room when it polls, and `message_exchange` is `true`.
+4. A new agent answers its owner only. Leave the canary and the auditor there. For the worker, call `POST /agents/{agent_id}/ops/update_agent_detail` with the bot's own API key and `{"agent_id": "<agent_id>", "addressing": "anyone"}`. The published values are `owner_only`, `owner_and_owner_agents`, and `anyone`.
+5. Use the template from Switch Console, or post the same document to `POST /rooms/from-yaml`. The room names `worker`, `canary`, and `auditor`. If one of those agents is missing, the run stops. The template does not install a coding agent.
+6. Put one bot's id and API key in `.env`: `SWITCH_BASE_URL`, `SWITCH_AGENT_ID`, `SWITCH_API_TOKEN`, `SWITCH_ROOM_ID`. `SWITCH_CONNECTION_ID` is optional. The adapter sends it only when it is set.
+7. `firedrill up --adapter switch` calls `GET /health` and, when the token is set, posts one readiness line with `POST /agents/{agent_id}/message` and `{"room_id", "content"}`.
+8. `firedrill start --adapter switch` runs the seeded drill on that bus until the first private canary reveal. That call raises `NotSupported`. `send_targeted_message` is in the operation catalog, and other participants still see it, so it is not a private channel. There is no reaction operation. Use `/approve` and `/reject` in the room. One Switch agent id cannot honestly post as three human authors; the adapter keeps local author and role labels only after a confirmed `read_context`.
+
+Verified against the published agent protocol and `docs/TEMPLATES.md`, not against a live server:
+
+- `GET /health`
+- `POST /agents` registration fields, and the warning not to use `register-known`
+- `POST /agents/{agent_id}/ops/update_agent_detail` with `addressing`
+- `POST /agents/{agent_id}/message` with `{room_id, content}`
+- `GET /agents/{agent_id}/ops`, then `read_context` only with argument names that schema lists
+- `POST /agents/{agent_id}/ops/{operation}` with the bearer token and optional `X-Switch-Connection-Id`
+
+Not verified live: registration, addressing, the WebSocket, applying the template, posting, and reading a room. This checkout has no `SWITCH_BASE_URL`. `kswitch` on this machine is Kerberos, not a Switch CLI. Mattermost `GET /api/v4/system/ping` was verified live on the local preview container. Mattermost posting and `GET` of channel posts were checked against the API document, not against a token.
+
 ## Answer-key threat model
 
 The answer key is the map from request id to flaw, plus the bytes in `auditor_private/key.json`. That directory is mode 0700 and is not in git. `make setup-auditor` writes `AUDITOR_TOKEN` and `CANARY_INGEST_TOKEN` into `auditor_private/tokens.json` (mode 0600). On Linux it runs `sudo useradd --system firedrill-auditor`, then `chown` and `chmod 700` on that directory, when non-interactive sudo works. On macOS it keeps `sysadminctl`. When the user cannot be created, the script prints a warning and falls back to token-only isolation.
@@ -66,7 +92,7 @@ At the start the auditor posts `SHA-256(key.json bytes + newline + salt)`. At th
 
 Mattermost uses the preview image in `docker-compose.yml` on port 8065. That image has no `linux/arm64` manifest, so the compose file pins `platform: linux/amd64` for Apple Silicon. The adapter uses only these API v4 calls: `GET /api/v4/system/ping`, `GET /api/v4/users/me`, `POST /api/v4/posts` (including the documented `props` bag), `GET /api/v4/channels/{channel_id}/posts` to poll replies, `POST /api/v4/reactions`, and `POST /api/v4/channels/direct` for private reveals. `MM_TOKEN` is the bot or personal access token. Set `MM_CHANNEL_ID`, and set `MM_USER_AVERY`, `MM_USER_BLAKE`, and `MM_USER_CASEY` to the Mattermost user ids that receive canary DMs. The tool does not guess an admin password. If the server is up and the token is missing, `firedrill up --adapter mattermost` exits with those instructions. Posting was not exercised live: the local `.env` has an empty token.
 
-Switch uses `GET /health` and `POST /agents/{id}/message` with `{room_id, content}`. Room history uses `read_context` only after `GET /agents/{id}/ops`, and only with argument names that schema lists (`room_id` and `limit` are the published ones). Private canary reveals raise `NotSupported`: `send_targeted_message` is in the catalog, but other participants still see it in the room, and there is no confirmed private channel. Reactions raise `NotSupported` for the same reason. `switch/room-template.yaml` is template language version 1. The `provider` field is there because Console requires it for a coding agent it places on a machine. The drill's worker, canary, and auditor are the Python processes in this repo. `auto_approve` is false. No Switch CLI is installed here (`kswitch` is Kerberos), and no Switch server was reached, so none of the Switch calls have been verified live.
+Switch is covered in [Running on Switch](#running-on-switch). No Switch server was reached from this checkout.
 
 ## Citations
 

@@ -81,27 +81,46 @@ def test_mattermost_instructions_do_not_guess_a_password():
     assert "admin123" not in text
 
 
+def _mapping_keys(node: object) -> set[str]:
+    found: set[str] = set()
+    if isinstance(node, dict):
+        for key, value in node.items():
+            found.add(str(key))
+            found.update(_mapping_keys(value))
+    elif isinstance(node, list):
+        for item in node:
+            found.update(_mapping_keys(item))
+    return found
+
+
 def test_room_template_matches_the_switch_language():
-    document = yaml.safe_load((ROOT / "switch" / "room-template.yaml").read_text(encoding="utf-8"))
+    raw = (ROOT / "switch" / "room-template.yaml").read_text(encoding="utf-8")
+    document = yaml.safe_load(raw)
     assert document["version"] == 1
-    agents = document["agents"]
-    assert {agent["name"] for agent in agents} == {"worker", "canary", "auditor"}
-    addressing = {agent["name"]: agent["addressing"] for agent in agents}
-    assert addressing == {"worker": "anyone", "canary": "owner", "auditor": "owner"}
-    allowed = {"claude", "codex", "opencode", "antigravity", "cursor"}
-    for agent in agents:
-        assert agent["instructions"].strip()
-        assert agent["auto_approve"] is False
-        assert agent["provider"] == "{provider}"
-        assert agent["location"] == "{location}"
-        assert agent["directory"].strip()
-    assert set(document["params"]["provider"]["default"]) <= allowed
-    instructions = document["room"]["instructions"].lower()
+    assert "agents" not in document
+    keys = _mapping_keys(document)
+    assert "provider" not in keys
+    assert "directory" not in keys
+    assert "location" not in keys
+    room = document["room"]
+    assert room["agents"] == ["worker", "canary", "auditor"]
+    assert room["users"] == ["{$creator}"]
+    instructions = room["instructions"].lower()
     assert "canaries never execute" in instructions
     assert "only the auditor accesses the answer key" in instructions
-    roles = {role["name"]: role for role in document["room"]["roles"]}
+    assert "worker answers anyone" in instructions
+    assert "owner only" in instructions
+    roles = {role["name"]: role for role in room["roles"]}
+    assert set(roles) == {"reviewer", "answer-key"}
     assert roles["answer-key"]["exclusive"] is True
+    assert roles["reviewer"]["exclusive"] is False
+    for role in roles.values():
+        assert role["instructions"].strip()
     assert "canaries never execute" in document["kickoff"].lower()
+    assert "POST /agents" in raw
+    assert "register-known" in raw
+    assert "update_agent_detail" in raw
+    assert '"addressing": "anyone"' in raw
 
 
 def test_seed_events_are_deterministic(tmp_path):

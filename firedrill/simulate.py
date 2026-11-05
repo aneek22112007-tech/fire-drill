@@ -255,3 +255,9 @@ def build_events(paths: DrillPaths, *, offline: bool, seed: int = SEED) -> list[
     return events
 
 
+def run_demo(paths: DrillPaths, *, offline: bool) -> str:
+    events = build_events(paths, offline=offline)
+    write_events(paths.recorded, events)
+    return play(paths, read_events(paths.recorded))
+
+

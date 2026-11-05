@@ -168,3 +168,16 @@ def test_cli_refuses_to_start_without_consent(tmp_path, monkeypatch):
     assert "demo" not in started.output
 
 
+def test_cli_replay_matches_the_demo(tmp_path, monkeypatch):
+    monkeypatch.setenv("FIREDRILL_ROOT", str(tmp_path))
+    monkeypatch.setenv("WORKER_SECRET", "test-worker-secret")
+    demo = runner.invoke(app, ["run-demo", "--offline"])
+    assert demo.exit_code == 0, demo.output
+    assert "Injected 12 canaries across 62 items" in demo.output
+    saved = (tmp_path / "report.md").read_text(encoding="utf-8")
+    again = runner.invoke(app, ["replay"])
+    assert again.exit_code == 0, again.output
+    assert (tmp_path / "report.md").read_text(encoding="utf-8") == saved
+    checked = runner.invoke(app, ["verify"])
+    assert checked.exit_code == 0, checked.output
+    assert "commitment ok sha256=" in checked.output

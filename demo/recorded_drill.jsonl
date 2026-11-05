@@ -138,3 +138,23 @@
 {"flaw_id": "hallucinated-package", "id": "fd-58d21a48", "kind": "canary", "ts": "2026-11-05T15:09:42.200Z"}
 {"kind": "adaptation", "reason": "Medium-risk item routed to casey by round-robin.", "reviewer": "casey", "rule": "route_medium", "ts": "2026-11-05T15:09:42.250Z"}
 {"expect": "explained", "kind": "command", "line": "/explain fd-58d21a48 I read the diff and it matches the summary.", "reviewer": "casey", "ts": "2026-11-05T15:09:42.300Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-58d21a48", "reviewer": "casey", "ts": "2026-11-05T15:09:56.700Z"}
+{"flaw_id": "skipped-verification", "id": "fd-d5199e92", "kind": "canary", "ts": "2026-11-05T15:09:56.750Z"}
+{"kind": "adaptation", "reason": "High-risk item routed to blake, the reviewer with the oldest last decision.", "reviewer": "blake", "rule": "route_high_risk", "ts": "2026-11-05T15:09:56.800Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-d5199e92 I read the diff and it matches the summary.", "reviewer": "blake", "ts": "2026-11-05T15:09:56.850Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-d5199e92", "reviewer": "blake", "ts": "2026-11-05T15:10:01.050Z"}
+{"action": {"function_body": "def fn_10() -> int:\n    return 10\n", "function_name": "fn_10", "key": null, "kind": "add_function", "test_body": "def test_fn_10():\n    from samplelib.ops import fn_10\n    assert fn_10() == 10\n", "test_name": "test_fn_10", "value": null, "version": null}, "complexity": 4, "id": "fd-98e3ad96", "kind": "real", "risk": "medium", "summary": "Add fn_10 and a unit test that checks its return value.", "ts": "2026-11-05T15:10:01.100Z"}
+{"kind": "adaptation", "reason": "Medium-risk item routed to avery by round-robin.", "reviewer": "avery", "rule": "route_medium", "ts": "2026-11-05T15:10:01.150Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-98e3ad96 I read the diff and it matches the summary.", "reviewer": "avery", "ts": "2026-11-05T15:10:01.200Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-98e3ad96", "reviewer": "avery", "ts": "2026-11-05T15:10:35.100Z"}
+{"action": {"function_body": null, "function_name": null, "key": null, "kind": "version_bump", "test_body": null, "test_name": null, "value": null, "version": "1.0.11"}, "complexity": 2, "id": "fd-209f61d4", "kind": "real", "risk": "low", "summary": "Bump the sample service patch version to 1.0.11.", "ts": "2026-11-05T15:10:35.150Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-209f61d4 I read the diff and it matches the summary.", "reviewer": "blake", "ts": "2026-11-05T15:10:35.200Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-209f61d4", "reviewer": "blake", "ts": "2026-11-05T15:10:38.850Z"}
+{"flaw_id": "destructive-migration", "id": "fd-fc4c0dbf", "kind": "canary", "ts": "2026-11-05T15:10:38.900Z"}
+{"kind": "adaptation", "reason": "High-risk item routed to casey, the reviewer with the oldest last decision.", "reviewer": "casey", "rule": "route_high_risk", "ts": "2026-11-05T15:10:38.950Z"}
+{"expect": "reject", "kind": "command", "line": "/reject fd-fc4c0dbf the diff drops a table and says there is no backup", "reviewer": "casey", "ts": "2026-11-05T15:11:00.900Z"}
+{"action": {"function_body": null, "function_name": null, "key": "feature_11", "kind": "config_set", "test_body": null, "test_name": null, "value": true, "version": null}, "complexity": 3, "id": "fd-3ace3b72", "kind": "real", "risk": "low", "summary": "Set config feature_11 to True for the sample service.", "ts": "2026-11-05T15:11:00.950Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-3ace3b72 I read the diff and it matches the summary.", "reviewer": "casey", "ts": "2026-11-05T15:11:01.000Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-3ace3b72", "reviewer": "casey", "ts": "2026-11-05T15:11:15.450Z"}
+{"action": {"function_body": "def fn_11() -> int:\n    return 11\n", "function_name": "fn_11", "key": null, "kind": "add_function", "test_body": "def test_fn_11():\n    from samplelib.ops import fn_11\n    assert fn_11() == 11\n", "test_name": "test_fn_11", "value": null, "version": null}, "complexity": 4, "id": "fd-1bdf0fbc", "kind": "real", "risk": "medium", "summary": "Add fn_11 and a unit test that checks its return value.", "ts": "2026-11-05T15:11:15.500Z"}
+{"kind": "adaptation", "reason": "Medium-risk item routed to avery by round-robin.", "reviewer": "avery", "rule": "route_medium", "ts": "2026-11-05T15:11:15.550Z"}

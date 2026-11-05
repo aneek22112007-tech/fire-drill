@@ -68,3 +68,13 @@ Mattermost uses the preview image in `docker-compose.yml` on port 8065. That ima
 
 Switch uses `GET /health` and `POST /agents/{id}/message` with `{room_id, content}`. Other operations are called only after `GET /agents/{id}/ops`, and only with argument names that schema lists. `switch/room-template.yaml` is template language version 1. The `provider` field is there because Console requires it for a coding agent it places on a machine. The drill's worker, canary, and auditor are the Python processes in this repo. `auto_approve` is false. No Switch Console was installed here, so the template has not been applied to a live server.
 
+## Citations
+
+- Anthropic, Claude Code auto mode: users accept 93% of permission prompts. <https://www.anthropic.com/engineering/claude-code-auto-mode>
+- Anthropic, planted dangerous commands were caught 13.6% of the time. <https://claude.com/resources/articles/auto-mode-default-in-claude-code>
+- Lane et al., Harvard Business School field experiment: LLM narrative explanations raised alignment with the AI by about 19 percentage points under cognitive load. <https://www.hbs.edu/faculty/Pages/item.aspx?num=66193>
+- EU AI Act Article 14(4)(b): overseers must remain aware of the tendency to rely automatically on the output (automation bias). <https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-14>
+- Cemri et al., Berkeley, MAST: task verification failures are about 23.5% of multi-agent failures. <https://arxiv.org/abs/2503.13657>
+
+The twelve canaries are tagged with MAST modes from that taxonomy, including disobeying the task or the role, ignoring another agent's input, a plan that does not match the diff, stopping early, and weak or wrong verification.
+

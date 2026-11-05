@@ -50,3 +50,9 @@ def take_low_risk_batch(pending: list[object], batch_size: int) -> list[object]:
 
 
 @dataclass(frozen=True)
+class AdaptationNote:
+    rule: str
+    reviewer: str | None
+    reason: str
+
+

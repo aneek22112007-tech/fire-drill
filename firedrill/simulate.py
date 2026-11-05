@@ -359,3 +359,17 @@ def _real_action(
     return make_function(fn_n + 1)
 
 
+def _post(item: Item, ts: str) -> dict[str, object]:
+    if item.is_canary:
+        return {"kind": "canary", "id": item.request_id, "flaw_id": item.flaw_id, "ts": ts}
+    return {
+        "kind": "real",
+        "id": item.request_id,
+        "ts": ts,
+        "summary": item.change,
+        "risk": item.risk,
+        "complexity": item.complexity,
+        "action": item.action,
+    }
+
+

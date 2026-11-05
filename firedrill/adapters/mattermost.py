@@ -122,3 +122,36 @@ class MattermostAdapter:
             raise AdapterError("POST /api/v4/channels/direct did not return a channel id.")
         return str(channel_id)
 
+    def post(
+        self,
+        *,
+        author: str,
+        role: str,
+        body: str,
+        thread_id: str | None = None,
+        channel: str = "room",
+        ts: str | None = None,
+    ) -> RoomMessage:
+        target = self.channel_id
+        if channel.startswith("dm:"):
+            other = os.environ.get(f"MM_USER_{channel[3:].upper()}", "").strip()
+            if not other:
+                raise AdapterError(
+                    f"No Mattermost user id for {channel}. "
+                    f"Set MM_USER_{channel[3:].upper()} in .env."
+                )
+            target = self.direct_channel(other)
+        payload = self.post_message(target, body, thread_id)
+        message = RoomMessage(
+            seq=len(self._sent) + 1,
+            id=str(payload.get("id") or f"local-{len(self._sent) + 1}"),
+            ts=ts or str(payload.get("create_at") or ""),
+            author=author,
+            role=role,
+            thread_id=thread_id,
+            body=body,
+            channel=channel,
+        )
+        self._sent.append(message)
+        return message
+

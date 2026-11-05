@@ -18,3 +18,7 @@ class Auditor:
     def command(self, reviewer: str, line: str, ts: str) -> str:
         return self._session.command(reviewer, line, ts)
 
+    def ingest(self, request_id: str, flaw_id: str) -> None:
+        """Store a canary mapping. The canary calls this and keeps no copy."""
+
+        self._session.store.add_mapping(request_id, flaw_id)

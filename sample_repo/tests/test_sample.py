@@ -15,3 +15,11 @@ def test_version_is_semver():
     assert all(part.isdigit() for part in parts)
 
 
+def test_config_loads():
+    config = load()
+    assert config["service"] == "sample"
+    assert config["environment"] == "staging"
+    assert isinstance(config["max_connections"], int)
+    assert config["max_connections"] <= 100
+
+

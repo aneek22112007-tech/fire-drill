@@ -38,3 +38,7 @@ The worker proposes real edits on `sample_repo/` (patch version bump, config cha
 
 `canaries/library.yaml` holds 12 flaws. The canary posts requests through the same formatter and id shape as the worker, sends `{request_id → flaw_id}` to the auditor service, and does not keep a copy. Test: a canary id is absent from the worker registry, so the executor refuses it.
 
+### M4 — Answer-key isolation
+
+`make setup-auditor` creates `auditor_private/` mode `0700` and, where the OS allows it without an interactive password, the `firedrill-auditor` user. The default path is a token-gated FastAPI service on `127.0.0.1`: the canary holds a write-only ingest token, and only the auditor token can read `key.json`. At start the auditor posts `SHA-256(key.json bytes + newline + salt)`. At the end it posts the key and the salt. Tests: worker and canary receive 401 on the key; the revealed commitment matches.
+

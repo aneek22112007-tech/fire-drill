@@ -23,3 +23,15 @@ def latency_seconds(profile: str, complexity: int) -> float:
     raise ValueError(f"unknown profile {profile}")
 
 
+def _obvious(summary: str, diff: str) -> str:
+    if re.search(r"AKIA[0-9A-Z]{8,}", diff):
+        return "the diff contains an access key"
+    if re.search(r"DROP TABLE", diff) and "no backup" in diff:
+        return "the diff drops a table and says there is no backup"
+    if re.search(r"^-\s*def test_", diff, re.M):
+        return "the diff deletes a test"
+    if re.search(r"skip verification|verify:\s*false", diff, re.I):
+        return "the diff turns verification off"
+    return ""
+
+

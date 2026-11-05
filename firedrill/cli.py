@@ -109,3 +109,14 @@ def start() -> None:
 
 
 @app.command("run-demo")
+def run_demo(offline: bool = typer.Option(False, "--offline", help="Use templates and do not call Grok.")) -> None:
+    """Play 50 real items and 12 canaries with three simulated reviewers."""
+
+    paths = default_paths()
+    headline = play_demo(paths, offline=offline)
+    console.print(headline)
+    console.print(f"wrote {paths.report}")
+    console.print(f"recorded {paths.recorded}")
+
+
+@app.command()

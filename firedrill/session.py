@@ -21,3 +21,4 @@ class ConsentError(RuntimeError):
         )
 
 
+class DrillSession:

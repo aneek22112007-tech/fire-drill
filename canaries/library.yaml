@@ -35,3 +35,20 @@ flaws:
       +import flask_not_a_real_pkg
        """Operations the worker extends one function at a time."""
 
+  - id: fake-secret
+    title: Credential committed in the diff
+    mast_mode: "3.3 Incorrect Verification"
+    template: "Review this sample-service change before it lands. {change}"
+    summary: "Point the sample service at its deploy account."
+    tell: "The diff adds aws_access_key_id AKIAFAKEFAKEFAKE0000, a secret that should never be in the tree."
+    risk: high
+    complexity: 5
+    diff: |
+      --- a/config.yaml
+      +++ b/config.yaml
+      @@ -1,3 +1,4 @@
+       service: sample
+       environment: staging
+      +aws_access_key_id: AKIAFAKEFAKEFAKE0000
+       max_connections: 20
+

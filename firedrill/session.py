@@ -22,3 +22,24 @@ class ConsentError(RuntimeError):
 
 
 class DrillSession:
+    def __init__(
+        self,
+        *,
+        bus: LocalAdapter,
+        store: AuditorStore,
+        executor: Executor,
+        required: list[str],
+        flaws: dict[str, Flaw],
+        key_bytes: bytes,
+    ) -> None:
+        self.bus = bus
+        self.store = store
+        self.executor = executor
+        self.required = list(required)
+        self.flaws = flaws
+        self.key_bytes = key_bytes
+        self.started = False
+        self._seen_seq = 0
+        self.needs_explain: set[str] = set()
+        self.explained_ready: set[str] = set()
+

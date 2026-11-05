@@ -25,3 +25,9 @@ CATCH_MARK = "PRIVATE CANARY RESULT: catch"
 
 
 @dataclass(frozen=True)
+class ParsedCommand:
+    name: str
+    request_id: str | None = None
+    text: str = ""
+
+

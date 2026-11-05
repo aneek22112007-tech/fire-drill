@@ -26,3 +26,8 @@ HEADER = re.compile(
 
 
 @pytest.fixture()
+def secret(monkeypatch):
+    monkeypatch.setenv("WORKER_SECRET", "test-worker-secret")
+    return b"test-worker-secret"
+
+

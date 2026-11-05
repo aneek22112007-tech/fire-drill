@@ -241,3 +241,9 @@ class AuditorStore:
             "meta": self._all_meta(),
         }
 
+    def _all_meta(self) -> dict[str, str]:
+        with self._lock:
+            rows = self._conn.execute("SELECT key, value FROM meta").fetchall()
+        return {row["key"]: row["value"] for row in rows}
+
+

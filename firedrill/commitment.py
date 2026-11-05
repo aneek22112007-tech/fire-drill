@@ -44,3 +44,7 @@ def verify_reveal_text(text: str) -> tuple[bool, str]:
     return True, actual
 
 
+def hmac_equal(left: str, right: str) -> bool:
+    import hmac
+
+    return hmac.compare_digest(left, right)

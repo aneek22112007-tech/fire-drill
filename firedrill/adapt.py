@@ -41,3 +41,12 @@ def route_high_risk(reviewers: list[str], last_decision_ts: dict[str, str | None
     return min(reviewers, key=sort_key)
 
 
+def take_low_risk_batch(pending: list[object], batch_size: int) -> list[object]:
+    if batch_size < 1 or len(pending) < batch_size:
+        return []
+    batch = pending[:batch_size]
+    del pending[:batch_size]
+    return batch
+
+
+@dataclass(frozen=True)

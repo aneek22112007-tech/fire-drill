@@ -83,3 +83,11 @@ def demo_salt(seed: int) -> str:
     return "fd-salt-" + digest[:8]
 
 
+def read_events(path: Path) -> list[dict[str, object]]:
+    events: list[dict[str, object]] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            events.append(json.loads(line))
+    return events
+
+

@@ -130,3 +130,25 @@ def test_canary_miss_is_private_and_real_approval_applies(world):
     }
 
 
+def test_reaction_approves_a_real_request(world):
+    session: DrillSession = world["session"]
+    bus: LocalAdapter = world["bus"]
+    repo: Path = world["repo"]
+    for person in ("avery", "blake", "casey"):
+        session.command(person, "/optin", "2026-11-05T15:00:00.000Z")
+    session.start("salt", "2026-11-05T15:00:01.000Z")
+    worker = world["worker"]
+    action = worker.action_config("feature_09", True)
+    summary, risk, complexity = worker.describe(action)
+    request = worker.propose(
+        action,
+        summary=summary,
+        risk=risk,
+        complexity=complexity,
+        request_id="fd-cccc0009",
+        ts="2026-11-05T15:04:00.000Z",
+    )
+    message_id = bus.read_room()[-1].id
+    assert session.react("avery", message_id, "white_check_mark", "2026-11-05T15:04:10.000Z") == "approve"
+    assert "feature_09: true" in (repo / "config.yaml").read_text(encoding="utf-8")
+    assert request.id == "fd-cccc0009"

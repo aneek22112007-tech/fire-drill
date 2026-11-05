@@ -20,3 +20,17 @@ from firedrill.store import AuditorStore
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def _request(request_id: str, *, canary: bool, complexity: int, mast: str | None, risk: str = "low") -> dict:
+    return {
+        "id": request_id,
+        "summary": request_id,
+        "diff": "",
+        "risk": risk,
+        "complexity": complexity,
+        "created_ts": "2026-11-05T15:00:00.000Z",
+        "is_canary": 1 if canary else 0,
+        "flaw_id": "x" if canary else None,
+        "mast_mode": mast,
+    }
+
+

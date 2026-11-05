@@ -243,3 +243,10 @@ class DrillSession:
             latency_s=seconds_between(str(request["created_ts"]), ts),
         )
 
+    def _closed(self) -> set[str]:
+        return {
+            decision.request_id
+            for decision in self.store.decisions()
+            if decision.action in {"approve", "reject"}
+        }
+

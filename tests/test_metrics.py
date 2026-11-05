@@ -7,7 +7,16 @@ from pathlib import Path
 
 import pytest
 
-from firedrill.adapt import is_flat, note_high_risk, note_low_risk_batch, route_high_risk, take_low_risk_batch
+from firedrill.adapt import (
+    assign_canary,
+    decisions_phrase,
+    is_flat,
+    note_canary,
+    note_high_risk,
+    note_low_risk_batch,
+    route_high_risk,
+    take_low_risk_batch,
+)
 from firedrill.adapters.local import LocalAdapter
 from firedrill.agents.worker import Worker
 from firedrill.executor import Executor
@@ -85,14 +94,40 @@ def test_metrics_on_a_handmade_fixture():
 
 def test_flatness_rules():
     assert is_flat([2, 2, 2, 2, 2]) is True
+    assert is_flat([2.5, 2.6, 2.4, 2.7, 2.5]) is True
+    assert is_flat([7, 7, 7]) is True
     assert is_flat([10, 10, 10, 10, 10]) is True
     assert is_flat([10, 10, 10, 10]) is False
-    assert is_flat([7]) is True
+    assert is_flat([7]) is False
     assert is_flat([9]) is False
+    assert is_flat([9, 9, 9]) is False
     assert is_flat([30, 40, 50, 60, 70]) is False
+    careful = [28, 31, 34, 37, 40]
+    assert coefficient_of_variation(careful) < 0.25
+    assert median(careful) > 15
+    assert is_flat(careful) is False
     spread = [30, 32, 34, 36, 38]
     assert coefficient_of_variation(spread) < 0.25
-    assert is_flat(spread) is True
+    assert is_flat(spread) is False
+    assert decisions_phrase(1) == "1 decision"
+    assert decisions_phrase(3) == "3 decisions"
+
+
+def test_canary_routing_shares_the_load_and_breaks_ties_toward_careful():
+    reviewers = ["avery", "blake", "casey"]
+    counts = {name: 0 for name in reviewers}
+    chosen = []
+    for _ in range(12):
+        name = assign_canary(reviewers, counts, "avery")
+        chosen.append(name)
+        counts[name] += 1
+    assert counts == {"avery": 4, "blake": 4, "casey": 4}
+    assert chosen[0] == "avery"
+    first = note_canary("avery", 0)
+    second = note_canary("avery", 1)
+    assert first.reason != second.reason
+    assert "canary 1" in first.reason
+    assert "canary 2" in second.reason
 
 
 def test_routing_and_batch_notes():
@@ -128,34 +163,38 @@ def test_flatness_triggers_explain_back(tmp_path, monkeypatch):
     session.command("blake", "/optin", "2026-11-05T15:00:00.000Z")
     session.start("salt", "2026-11-05T15:00:01.000Z")
 
-    first = worker.action_version_bump()
-    summary, risk, complexity = worker.describe(first)
-    opening = worker.propose(
-        first,
-        summary=summary,
-        risk=risk,
-        complexity=complexity,
-        request_id="fd-11111111",
-        ts="2026-11-05T15:01:00.000Z",
-    )
-    assert session.command("blake", f"/approve {opening.id}", "2026-11-05T15:01:03.000Z") == "approve"
-    assert store.adaptations()[0]["rule"] == "flatness_explain_back"
+    def propose(action, request_id: str, ts: str):
+        summary, risk, complexity = worker.describe(action)
+        return worker.propose(
+            action,
+            summary=summary,
+            risk=risk,
+            complexity=complexity,
+            request_id=request_id,
+            ts=ts,
+        )
 
-    second = worker.action_config("feature_02", True)
-    summary, risk, complexity = worker.describe(second)
-    follow = worker.propose(
-        second,
-        summary=summary,
-        risk=risk,
-        complexity=complexity,
-        request_id="fd-22222222",
-        ts="2026-11-05T15:02:00.000Z",
-    )
-    assert session.command("blake", f"/approve {follow.id}", "2026-11-05T15:02:03.000Z") == "explain-required"
-    assert "feature_02" not in (repo / "config.yaml").read_text(encoding="utf-8")
-    assert session.command("blake", f"/explain {follow.id} the diff only sets a feature flag", "2026-11-05T15:02:04.000Z") == "explained"
-    assert session.command("blake", f"/approve {follow.id}", "2026-11-05T15:02:05.000Z") == "approve"
-    assert "feature_02: true" in (repo / "config.yaml").read_text(encoding="utf-8")
+    opening = propose(worker.action_version_bump(), "fd-11111111", "2026-11-05T15:01:00.000Z")
+    assert session.command("blake", f"/approve {opening.id}", "2026-11-05T15:01:03.000Z") == "approve"
+    assert store.adaptations() == []
+    second = propose(worker.action_function(1), "fd-22222222", "2026-11-05T15:02:00.000Z")
+    assert session.command("blake", f"/approve {second.id}", "2026-11-05T15:02:03.000Z") == "approve"
+    assert store.adaptations() == []
+    third = propose(worker.action_config("feature_02", True), "fd-33333333", "2026-11-05T15:03:00.000Z")
+    assert session.command("blake", f"/approve {third.id}", "2026-11-05T15:03:03.000Z") == "approve"
+    flat = [row for row in store.adaptations() if row["rule"] == "flatness_explain_back"]
+    assert len(flat) == 1
+    assert "across 3 decisions" in str(flat[0]["reason"])
+    assert "1 decisions" not in str(flat[0]["reason"])
+
+    blocked = propose(worker.action_config("feature_03", True), "fd-44444444", "2026-11-05T15:04:00.000Z")
+    assert session.command("blake", f"/approve {blocked.id}", "2026-11-05T15:04:03.000Z") == "explain-required"
+    assert "feature_03" not in (repo / "config.yaml").read_text(encoding="utf-8")
+    assert session.command("blake", f"/explain {blocked.id} the diff only sets a feature flag", "2026-11-05T15:04:04.000Z") == "explained"
+    assert session.command("blake", f"/approve {blocked.id}", "2026-11-05T15:04:05.000Z") == "approve"
+    assert "feature_03: true" in (repo / "config.yaml").read_text(encoding="utf-8")
+    flat_after = [row for row in store.adaptations() if row["rule"] == "flatness_explain_back"]
+    assert flat_after == flat
     bus.close()
     registry.close()
     store.close()

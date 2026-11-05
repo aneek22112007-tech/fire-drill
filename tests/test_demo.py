@@ -126,6 +126,22 @@ def test_run_demo_and_replay_write_the_same_report(tmp_path):
     store = AuditorStore(paths.drill_db)
     try:
         metrics = compute_metrics(store.requests(), store.decisions())
+        by_name = {item.reviewer: item for item in metrics.by_reviewer}
+        assert by_name["blake"].flat is True
+        assert by_name["avery"].flat is False
+        closed: dict[str, str] = {}
+        for decision in store.decisions():
+            if decision.action in {"approve", "reject"} and decision.request_id not in closed:
+                closed[decision.request_id] = decision.reviewer
+        counts = {"avery": 0, "blake": 0, "casey": 0}
+        for row in store.requests():
+            if row.get("is_canary"):
+                counts[closed[str(row["id"])]] += 1
+        assert counts == {"avery": 4, "blake": 4, "casey": 4}
+        flat_rows = [row for row in store.adaptations() if row["rule"] == "flatness_explain_back"]
+        assert [row["reviewer"] for row in flat_rows].count("blake") == 1
+        assert all(row["reviewer"] != "avery" for row in flat_rows)
+        assert all("1 decisions" not in str(row["reason"]) for row in store.adaptations())
     finally:
         store.close()
     assert first == headline(metrics)

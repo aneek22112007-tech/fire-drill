@@ -48,7 +48,7 @@ The drill refuses to start until every configured human has sent `/optin`. Decis
 
 ### M6 — Metrics and adaptation
 
-Per reviewer and overall: canary catch rate, median time-to-decision on canaries versus real items, Pearson correlation of review time with complexity, and a flatness flag (coefficient of variation under 0.25 with at least 5 decisions, or a median under 8 seconds). Adaptations: flatness forces explain-back before the next approval; high-risk items go to the reviewer with the oldest last decision; low-risk items are batched. Every adaptation is logged with a reason.
+Per reviewer and overall: canary catch rate, median time-to-decision on canaries versus real items, Pearson correlation of review time with complexity, and a flatness flag. Flat means at least 3 decisions with median under 8 seconds, or at least 5 decisions with coefficient of variation under 0.25 and median under 15 seconds. Adaptations: flatness forces explain-back before the next approval and is logged once per reviewer; high-risk items go to the reviewer with the oldest last decision; low-risk items are batched; canaries go to whoever has seen the fewest, with ties to the careful reviewer. Every adaptation is logged with a reason.
 
 ### M7 — Report and dashboard
 

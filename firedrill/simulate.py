@@ -19,7 +19,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from firedrill.adapt import (
+    assign_canary,
     is_flat,
+    note_canary,
     note_high_risk,
     note_low_risk_batch,
     note_round_robin,
@@ -45,7 +47,7 @@ from firedrill.session import DrillSession
 from firedrill.store import AuditorStore
 from firedrill.timeutil import add_seconds, parse_ts, seconds_between
 
-SEED = 20261105
+SEED = 20261106
 REAL_ITEMS = 50
 CANARY_ITEMS = 12
 TOTAL_ITEMS = REAL_ITEMS + CANARY_ITEMS
@@ -178,10 +180,14 @@ def build_events(paths: DrillPaths, *, offline: bool, seed: int = SEED) -> list[
 
     profiles = {row["id"]: row["profile"] for row in REVIEWERS}
     reviewers = [row["id"] for row in REVIEWERS]
+    careful = next(row["id"] for row in REVIEWERS if row["profile"] == "careful")
     last_ts: dict[str, str | None] = {reviewer: None for reviewer in reviewers}
     latencies: dict[str, list[float]] = {reviewer: [] for reviewer in reviewers}
+    canary_counts = {reviewer: 0 for reviewer in reviewers}
+    medium_counts = {reviewer: 0 for reviewer in reviewers}
     needs_explain: set[str] = set()
     cursor = 0
+    medium_cursor = 0
     events: list[dict[str, object]] = [
         {
             "kind": "meta",
@@ -198,7 +204,7 @@ def build_events(paths: DrillPaths, *, offline: bool, seed: int = SEED) -> list[
     clock = add_seconds(clock, 1)
 
     def emit(group: list[Item], note_rule: str | None, at: str) -> str:
-        nonlocal cursor
+        nonlocal cursor, medium_cursor
         if note_rule == "batch" and len(group) >= 2:
             note = note_low_risk_batch(len(group))
             events.append(_note(note.rule, note.reviewer, note.reason, at))
@@ -209,14 +215,21 @@ def build_events(paths: DrillPaths, *, offline: bool, seed: int = SEED) -> list[
             posted.append((item, at))
             at = add_seconds(at, 0.05)
         for item, post_ts in posted:
-            if note_rule == "each":
+            if item.is_canary:
+                reviewer = assign_canary(reviewers, canary_counts, careful)
+                note = note_canary(reviewer, canary_counts[reviewer])
+                canary_counts[reviewer] += 1
+                events.append(_note(note.rule, note.reviewer, note.reason, at))
+                at = add_seconds(at, 0.05)
+            elif note_rule == "each":
                 if item.risk == "high":
                     reviewer = route_high_risk(reviewers, last_ts)
                     note = note_high_risk(reviewers, last_ts)
                 else:
-                    reviewer = reviewers[cursor % len(reviewers)]
-                    cursor += 1
-                    note = note_round_robin(reviewer)
+                    reviewer = reviewers[medium_cursor % len(reviewers)]
+                    medium_cursor += 1
+                    note = note_round_robin(reviewer, medium_counts[reviewer])
+                    medium_counts[reviewer] += 1
                 events.append(_note(note.rule, note.reviewer, note.reason, at))
                 at = add_seconds(at, 0.05)
             else:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from firedrill.adapters.base import RoomBus
 from firedrill.commands import catch_dm, miss_dm, parse_approval, parse_command
-from firedrill.adapt import is_flat
+from firedrill.adapt import decisions_phrase, is_flat
 from firedrill.commitment import commitment_hash, commitment_message, reveal_message
 from firedrill.executor import Executor, ExecutorRefusal
 from firedrill.metrics import median
@@ -168,6 +168,12 @@ class DrillSession:
             return
         self.needs_explain.add(reviewer)
         self.explained_ready.discard(reviewer)
+        already = any(
+            row.get("rule") == "flatness_explain_back" and row.get("reviewer") == reviewer
+            for row in self.store.adaptations()
+        )
+        if already:
+            return
         middle = median(times)
         rendered = "n/a" if middle is None else f"{middle:.3f}"
         self.store.record_adaptation(
@@ -175,8 +181,9 @@ class DrillSession:
             rule="flatness_explain_back",
             reviewer=reviewer,
             reason=(
-                f"{reviewer} review times are flat (median {rendered}s across {len(times)} "
-                "decisions). Explain-back is required before the next approval."
+                f"{reviewer} review times are flat "
+                f"(median {rendered}s across {decisions_phrase(len(times))}). "
+                "Explain-back is required before the next approval."
             ),
         )
 

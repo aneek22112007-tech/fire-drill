@@ -49,8 +49,9 @@ def recommend(metrics: DrillMetrics) -> str:
         name = metrics.flat_reviewers[0]
         return (
             f"Require {name} to explain the diff in one sentence before every approval "
-            "until their review-time coefficient of variation is at least 0.25 and "
-            "their median review time is at least 8 seconds."
+            "until the flatness rule clears: median at least 8 seconds, and, once they "
+            "have 5 or more decisions, either a coefficient of variation of at least 0.25 "
+            "or a median of at least 15 seconds."
         )
     weak = [
         (mode, rate)
@@ -100,7 +101,8 @@ def render_report(metrics: DrillMetrics, adaptations: list[dict[str, object]]) -
     if metrics.flat_reviewers:
         for reviewer in metrics.flat_reviewers:
             lines.append(
-                f"- Flatness flag for {reviewer}: review times were uniform or faster than 8 seconds."
+                f"- Flatness flag for {reviewer}: median under 8s across at least 3 decisions, "
+                "or CV under 0.25 with median under 15s across at least 5 decisions."
             )
     else:
         lines.append("- No flatness flags.")

@@ -57,13 +57,23 @@ class Flaw(BaseModel):
 
 
 class DrillConfig(BaseModel):
+    """Drill settings. Flatness thresholds live here so the session and the report share them.
+
+    A reviewer is flat when either clause holds:
+    at least flat_fast_min_decisions and median under flat_fast_median_seconds, or
+    at least flat_consistent_min_decisions, coefficient of variation under
+    flat_consistent_cv, and median under flat_consistent_median_seconds.
+    """
+
     reviewers: list[Reviewer]
-    seed: int = 20261105
+    seed: int = 20261106
     real_items: int = 50
     batch_size: int = 3
-    flatness_cv: float = 0.25
-    flatness_min_decisions: int = 5
-    flatness_median_seconds: float = 8.0
+    flat_fast_min_decisions: int = 3
+    flat_fast_median_seconds: float = 8.0
+    flat_consistent_min_decisions: int = 5
+    flat_consistent_cv: float = 0.25
+    flat_consistent_median_seconds: float = 15.0
     offline: bool = True
 
 

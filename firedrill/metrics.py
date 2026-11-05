@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from firedrill.models import Decision
+from firedrill.models import Decision, DrillConfig
 
 
 def median(values: list[float]) -> float | None:
@@ -85,10 +85,7 @@ def _rate(caught: int, total: int) -> float | None:
 def compute_metrics(
     requests: list[dict[str, object]],
     decisions: list[Decision],
-    *,
-    cv_limit: float = 0.25,
-    min_decisions: int = 5,
-    median_limit: float = 8.0,
+    settings: DrillConfig | None = None,
 ) -> DrillMetrics:
     from firedrill.adapt import is_flat
 
@@ -126,7 +123,7 @@ def compute_metrics(
         own_caught = sum(1 for row in own_canaries if closed[str(row["id"])].action == "reject")
         own_pairs = _pairs(requests, {item.request_id: item for item in own})
         times = [decision.latency_s for decision in own]
-        flat = is_flat(times, cv_limit=cv_limit, min_decisions=min_decisions, median_limit=median_limit)
+        flat = is_flat(times, settings)
         if flat:
             flat_reviewers.append(reviewer)
         by_reviewer.append(

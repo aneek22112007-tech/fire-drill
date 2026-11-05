@@ -54,3 +54,6 @@ Per reviewer and overall: canary catch rate, median time-to-decision on canaries
 
 `firedrill report` writes `report.md` and the auditor service renders `/dashboard` (auditor token only). Figures are computed from the drill database. The limits section states that the sample demonstrates the method and is not a claim of statistical significance.
 
+### M8 — Demo, Switch template, README
+
+`firedrill run-demo --offline` runs 50 real items and 12 canaries with three simulated reviewers in under two minutes. `firedrill replay` reproduces that report from `demo/recorded_drill.jsonl`. `switch/room-template.yaml` follows the documented template language. The README has the pitch, five-command quick start, architecture diagram, answer-key threat model, citations, limits, and a three-minute demo script.

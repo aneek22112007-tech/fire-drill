@@ -97,3 +97,13 @@ class MattermostAdapter:
             raise AdapterError("POST /api/v4/posts did not return an object.")
         return payload
 
+    def react(self, post_id: str, emoji_name: str) -> None:
+        response = httpx.post(
+            f"{self.base_url}/api/v4/reactions",
+            headers=self._headers(),
+            json={"user_id": self.user_id, "post_id": post_id, "emoji_name": emoji_name},
+            timeout=15.0,
+        )
+        if response.status_code >= 400:
+            raise AdapterError(f"POST /api/v4/reactions returned {response.status_code}.")
+

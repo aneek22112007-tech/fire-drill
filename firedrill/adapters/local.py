@@ -103,3 +103,16 @@ class LocalAdapter:
     def read_room(self) -> list[RoomMessage]:
         return self.read_channel("room")
 
+    def read_channel(self, channel: str) -> list[RoomMessage]:
+        with self._lock:
+            rows = self._conn.execute(
+                """
+                SELECT seq, id, ts, author, role, thread_id, body, channel
+                FROM messages
+                WHERE channel = ?
+                ORDER BY seq ASC
+                """,
+                (channel,),
+            ).fetchall()
+        return [_row_message(row) for row in rows]
+

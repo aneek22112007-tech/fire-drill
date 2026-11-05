@@ -80,3 +80,20 @@ class MattermostAdapter:
     def _headers(self) -> dict[str, str]:
         return {"Authorization": f"Bearer {self.token}"}
 
+    def post_message(self, channel_id: str, message: str, root_id: str | None) -> dict[str, Any]:
+        body: dict[str, Any] = {"channel_id": channel_id, "message": message}
+        if root_id:
+            body["root_id"] = root_id
+        response = httpx.post(
+            f"{self.base_url}/api/v4/posts",
+            headers=self._headers(),
+            json=body,
+            timeout=15.0,
+        )
+        if response.status_code >= 400:
+            raise AdapterError(f"POST /api/v4/posts returned {response.status_code}.")
+        payload = response.json()
+        if not isinstance(payload, dict):
+            raise AdapterError("POST /api/v4/posts did not return an object.")
+        return payload
+

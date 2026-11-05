@@ -67,3 +67,11 @@ def note_high_risk(reviewers: list[str], last_decision_ts: dict[str, str | None]
     )
 
 
+def note_low_risk_batch(count: int) -> AdaptationNote:
+    return AdaptationNote(
+        rule="batch_low_risk",
+        reviewer=None,
+        reason=f"Batched {count} low-risk items so reviewers see them together.",
+    )
+
+

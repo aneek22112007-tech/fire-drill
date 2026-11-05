@@ -147,3 +147,10 @@ class AuditorStore:
             )
             self._conn.commit()
 
+    def requests(self) -> list[dict[str, object]]:
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT * FROM requests ORDER BY created_ts, id"
+            ).fetchall()
+        return [dict(row) for row in rows]
+

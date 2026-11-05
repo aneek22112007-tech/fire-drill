@@ -30,3 +30,11 @@ def format_approval(request: ApprovalRequest) -> str:
     )
 
 
+def room_transcript(messages: list[RoomMessage]) -> str:
+    lines: list[str] = []
+    for message in messages:
+        thread = f" thread={message.thread_id}" if message.thread_id else ""
+        lines.append(
+            f"[{message.seq}] {message.ts} {message.author} ({message.role}){thread}\n{message.body}"
+        )
+    return "\n\n".join(lines)

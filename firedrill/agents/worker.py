@@ -20,3 +20,8 @@ def new_request_id(rng: random.Random | None = None) -> str:
 
 
 class Worker:
+    def __init__(self, registry: WorkerRegistry, bus: LocalAdapter, repo: Path) -> None:
+        self.registry = registry
+        self.bus = bus
+        self.repo = Path(repo)
+

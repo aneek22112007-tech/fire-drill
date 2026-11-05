@@ -10,3 +10,7 @@ CHANGE_ROLE = "change-agent"
 SUMMARY_TEMPLATE = "Review this sample-service change before it lands. {change}"
 
 
+def voiced(change: str) -> str:
+    return SUMMARY_TEMPLATE.format(change=change)
+
+

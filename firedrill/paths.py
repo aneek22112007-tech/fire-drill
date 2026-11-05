@@ -72,3 +72,10 @@ class DrillPaths:
     def recorded(self) -> Path:
         return self.root / "demo" / "recorded_drill.jsonl"
 
+    def ensure(self) -> None:
+        self.data.mkdir(parents=True, exist_ok=True)
+        self.auditor_dir.mkdir(parents=True, exist_ok=True)
+        os.chmod(self.auditor_dir, 0o700)
+        self.recorded.parent.mkdir(parents=True, exist_ok=True)
+
+

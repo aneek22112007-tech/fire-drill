@@ -154,3 +154,21 @@ class AuditorStore:
             ).fetchall()
         return [dict(row) for row in rows]
 
+    def record_decision(self, decision: Decision) -> None:
+        with self._lock:
+            self._conn.execute(
+                """
+                INSERT INTO decisions (request_id, reviewer, action, reason, timestamp, latency_s)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    decision.request_id,
+                    decision.reviewer,
+                    decision.action,
+                    decision.reason,
+                    decision.timestamp,
+                    decision.latency_s,
+                ),
+            )
+            self._conn.commit()
+

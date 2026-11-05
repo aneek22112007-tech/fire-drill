@@ -54,3 +54,7 @@ class DrillPaths:
         return repo_root() / "sample_repo"
 
     @property
+    def work_repo(self) -> Path:
+        return self.data / "work_repo"
+
+    @property

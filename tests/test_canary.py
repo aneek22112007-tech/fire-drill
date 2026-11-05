@@ -31,3 +31,14 @@ def secret(monkeypatch):
     return b"test-worker-secret"
 
 
+def test_library_has_twelve_distinct_flaws():
+    flaws = load_library(ROOT / "canaries" / "library.yaml")
+    assert len(flaws) == 12
+    assert len({flaw.id for flaw in flaws}) == 12
+    for flaw in flaws:
+        assert flaw.template == SUMMARY_TEMPLATE
+        assert flaw.tell
+        assert flaw.mast_mode
+        assert "AKIA" not in flaw.tell or flaw.id == "fake-secret"
+
+

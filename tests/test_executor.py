@@ -84,3 +84,11 @@ def test_rejected_request_leaves_repo_untouched(tmp_path, secret):
     registry.close()
 
 
+def test_executor_refuses_unregistered_id(tmp_path, secret):
+    repo = _copy_repo(tmp_path)
+    registry = WorkerRegistry(tmp_path / "registry.db", secret)
+    executor = Executor(registry, repo)
+    with pytest.raises(ExecutorRefusal, match="not in the worker registry"):
+        executor.execute("fd-deadbeef")
+    assert read_version(repo) == "1.0.0"
+    registry.close()

@@ -62,3 +62,7 @@ class Worker:
     def action_function(self, index: int) -> Action:
         return make_function(index)
 
+    def describe(self, action: Action) -> tuple[str, Risk, int]:
+        return describe_action(action)
+
+

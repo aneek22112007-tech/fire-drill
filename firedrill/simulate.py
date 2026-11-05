@@ -261,3 +261,7 @@ def run_demo(paths: DrillPaths, *, offline: bool) -> str:
     return play(paths, read_events(paths.recorded))
 
 
+def replay(paths: DrillPaths, recording: Path) -> str:
+    return play(paths, read_events(recording))
+
+

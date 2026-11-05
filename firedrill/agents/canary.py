@@ -23,3 +23,7 @@ def load_library(path: Path) -> list[Flaw]:
 
 
 class Canary:
+    def __init__(self, bus: LocalAdapter, submit_mapping: Callable[[str, str], None]) -> None:
+        self.bus = bus
+        self._submit_mapping = submit_mapping
+

@@ -69,3 +69,6 @@ class DrillPaths:
         return repo_root() / "canaries" / "library.yaml"
 
     @property
+    def recorded(self) -> Path:
+        return self.root / "demo" / "recorded_drill.jsonl"
+

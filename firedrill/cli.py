@@ -235,3 +235,10 @@ def _live() -> _Live:
     return _Live()
 
 
+def _close(closers: list[object]) -> None:
+    for closer in closers:
+        close = getattr(closer, "close", None)
+        if close is not None:
+            close()
+
+

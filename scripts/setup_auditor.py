@@ -53,3 +53,14 @@ def _write_key(path: Path) -> None:
     os.chmod(path, 0o600)
 
 
+def _write_tokens(path: Path) -> None:
+    if path.exists():
+        return
+    payload = {
+        "auditor_token": secrets.token_hex(32),
+        "canary_ingest_token": secrets.token_hex(32),
+    }
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    os.chmod(path, 0o600)
+
+

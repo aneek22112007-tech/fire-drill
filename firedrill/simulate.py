@@ -445,3 +445,10 @@ def _reset(paths: DrillPaths) -> None:
     )
 
 
+def _unlink_db(path: Path) -> None:
+    for suffix in ("", "-wal", "-shm"):
+        candidate = Path(str(path) + suffix) if suffix else path
+        if candidate.exists():
+            candidate.unlink()
+
+

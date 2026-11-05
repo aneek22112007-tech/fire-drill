@@ -213,3 +213,8 @@ class AuditorStore:
             )
             self._conn.commit()
 
+    def opted(self) -> set[str]:
+        with self._lock:
+            rows = self._conn.execute("SELECT reviewer FROM consent").fetchall()
+        return {row["reviewer"] for row in rows}
+

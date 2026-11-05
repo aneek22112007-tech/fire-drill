@@ -231,3 +231,13 @@ class AuditorStore:
             row = self._conn.execute("SELECT value FROM meta WHERE key = ?", (key,)).fetchone()
         return None if row is None else str(row["value"])
 
+    def dump_trace(self) -> dict[str, object]:
+        return {
+            "requests": self.requests(),
+            "decisions": [item.model_dump() for item in self.decisions()],
+            "adaptations": self.adaptations(),
+            "consent": sorted(self.opted()),
+            "mappings": self.mappings(),
+            "meta": self._all_meta(),
+        }
+

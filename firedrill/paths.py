@@ -20,3 +20,7 @@ class DrillPaths:
         return self.root / "data"
 
     @property
+    def room_db(self) -> Path:
+        return self.data / "room.db"
+
+    @property

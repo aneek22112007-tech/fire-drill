@@ -69,3 +69,14 @@ class WorkerRegistry:
             ).fetchone()
         return row is not None
 
+    def get(self, request_id: str) -> tuple[str, Action] | None:
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT signature, action_json FROM registry WHERE request_id = ?",
+                (request_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        action = Action.model_validate(json.loads(row["action_json"]))
+        return row["signature"], action
+

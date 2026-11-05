@@ -340,3 +340,22 @@ def play(paths: DrillPaths, events: list[dict[str, object]]) -> str:
         bus.close()
 
 
+def _real_action(
+    real_i: int,
+    *,
+    version: str,
+    kind_i: int,
+    flag_n: int,
+    fn_n: int,
+) -> Action:
+    if real_i % 10 == 0:
+        # Stays at or below the documented cap of 100, and moves off the stock value.
+        return Action(kind="config_set", key="max_connections", value=min(100, 30 + real_i))
+    kind = kind_i % 3
+    if kind == 0:
+        return Action(kind="version_bump", version=bump_patch(version))
+    if kind == 1:
+        return Action(kind="config_set", key=f"feature_{flag_n + 1:02d}", value=True)
+    return make_function(fn_n + 1)
+
+

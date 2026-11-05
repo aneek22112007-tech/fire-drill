@@ -11,3 +11,4 @@ class AdapterError(RuntimeError):
     """A remote adapter refused to guess a call it could not verify."""
 
 
+class RoomBus(Protocol):

@@ -5,3 +5,4 @@ from __future__ import annotations
 from firedrill.session import DrillSession
 
 
+class Auditor:

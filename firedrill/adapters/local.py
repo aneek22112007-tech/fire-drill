@@ -116,3 +116,18 @@ class LocalAdapter:
             ).fetchall()
         return [_row_message(row) for row in rows]
 
+    def add_reaction(
+        self,
+        *,
+        message_id: str,
+        user: str,
+        emoji: str,
+        ts: str | None = None,
+    ) -> None:
+        with self._lock:
+            self._conn.execute(
+                "INSERT INTO reactions (message_id, user, emoji, ts) VALUES (?, ?, ?, ?)",
+                (message_id, user, emoji, ts or _now()),
+            )
+            self._conn.commit()
+

@@ -149,3 +149,20 @@ flaws:
        environment: staging
        max_connections: 20
 
+  - id: ignored-constraint
+    title: Retry cap in the summary is not the value in the diff
+    mast_mode: "1.1 Disobey Task Specification"
+    template: "Review this sample-service change before it lands. {change}"
+    summary: "Keep max_retries at or below 5, then tune retries."
+    tell: "The summary repeats the cap of 5, but the diff sets max_retries to 50."
+    risk: medium
+    complexity: 4
+    diff: |
+      --- a/config.yaml
+      +++ b/config.yaml
+      @@ -1,3 +1,4 @@
+       service: sample
+      +max_retries: 50
+       environment: staging
+       max_connections: 20
+

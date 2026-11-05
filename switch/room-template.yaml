@@ -80,3 +80,33 @@ agents:
       private note that they caught it. Do not put those clues in the room.
       Canaries never execute. Write the report from the recorded decisions.
 
+room:
+  name: Fire Drill
+  description: Chaos engineering for the human approve step in front of an AI agent.
+  instructions: |
+    Canaries never execute. An approval of a canary is feedback for that
+    reviewer, delivered in a private message, and it is not permission to
+    change the repository. Only the auditor accesses the answer key. The
+    worker and the canary must not read it. Reviewers opt in with /optin
+    before the drill starts. Decisions are /approve, /reject with a reason,
+    or /explain in one sentence when explain-back is on. The worker and the
+    canary use the same public request format so a reviewer cannot filter on
+    the author.
+  agents:
+    - worker
+    - canary
+    - auditor
+  users:
+    - "{$creator}"
+  roles:
+    - name: reviewer
+      exclusive: false
+      instructions: |
+        Read the diff before you approve. Use /approve, /reject, or /explain.
+        A flat or very fast pattern turns on explain-back for your next approval.
+    - name: answer-key
+      exclusive: true
+      instructions: |
+        Only the auditor holds this role. It is the commitment, the reveal,
+        and the private canary feedback. No other agent may assume it.
+

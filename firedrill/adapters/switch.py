@@ -38,3 +38,13 @@ def property_names(node: object) -> set[str] | None:
     return None
 
 
+def filter_arguments(schema: object, arguments: dict[str, object]) -> dict[str, object]:
+    allowed = property_names(schema)
+    if allowed is None:
+        raise AdapterError("operation schema has no properties; refusing to guess argument names")
+    extra = sorted(set(arguments) - allowed)
+    if extra:
+        raise AdapterError(f"refusing arguments that the schema does not list: {', '.join(extra)}")
+    return {key: value for key, value in arguments.items() if key in allowed}
+
+

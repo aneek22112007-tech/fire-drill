@@ -69,3 +69,4 @@ def probe_mattermost() -> str:
     return f"mattermost ready at {base} as {username}"
 
 
+class MattermostAdapter:

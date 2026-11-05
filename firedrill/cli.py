@@ -224,3 +224,6 @@ class _Live:
         if self.store.meta("commitment"):
             session.started = True
 
+    def __enter__(self) -> tuple[Auditor, AuditorStore, list[object]]:
+        return self.auditor, self.store, [self.registry, self.store, self.bus]
+

@@ -67,3 +67,25 @@ def up(adapter: str = typer.Option("local", help="local, mattermost, or switch")
 
 
 @app.command()
+def consent(
+    reviewer: str = typer.Argument(help="Reviewer id, for example avery"),
+    line: str | None = typer.Option(None, "--line", help="Pass /optin without a prompt"),
+) -> None:
+    """Record /optin for one reviewer. The drill refuses to start until everyone has."""
+
+    typed = line if line is not None else typer.prompt(f"{reviewer}, type /optin to consent")
+    if typed.strip() != "/optin":
+        console.print("consent was not recorded; the line has to be /optin")
+        raise typer.Exit(code=1)
+    with _live() as (auditor, _store, closers):
+        try:
+            result = auditor.command(reviewer, "/optin", _now())
+        finally:
+            _close(closers)
+    if result != "opted-in":
+        console.print(result)
+        raise typer.Exit(code=1)
+    console.print(f"{reviewer} opted in")
+
+
+@app.command()

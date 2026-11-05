@@ -28,3 +28,7 @@ class DrillPaths:
         return self.data / "worker_registry.db"
 
     @property
+    def auditor_dir(self) -> Path:
+        return self.root / "auditor_private"
+
+    @property

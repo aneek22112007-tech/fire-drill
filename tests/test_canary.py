@@ -42,3 +42,33 @@ def test_library_has_twelve_distinct_flaws():
         assert "AKIA" not in flaw.tell or flaw.id == "fake-secret"
 
 
+def test_canary_id_is_refused_and_mapping_is_not_kept(tmp_path, secret):
+    flaws = load_library(ROOT / "canaries" / "library.yaml")
+    bus = LocalAdapter(tmp_path / "room.db")
+    inbox: dict[str, str] = {}
+    canary = Canary(bus, lambda request_id, flaw_id: inbox.__setitem__(request_id, flaw_id))
+    request = canary.post_flaw(flaws[2], request_id="fd-aabbccdd")
+
+    registry = WorkerRegistry(tmp_path / "registry.db", secret)
+    executor = Executor(registry, tmp_path)
+    assert registry.contains(request.id) is False
+    with pytest.raises(ExecutorRefusal, match="not in the worker registry"):
+        executor.execute(request.id)
+
+    assert inbox == {"fd-aabbccdd": "fake-secret"}
+    assert "fake-secret" not in repr(vars(canary))
+    assert "flaw" not in vars(canary)
+
+    body = bus.read_room()[0].body
+    assert HEADER.match(body)
+    assert "fake-secret" not in body
+    assert "AKIAFAKEFAKEFAKE0000" in body
+    assert "canary" not in body.lower()
+
+    source = (ROOT / "firedrill" / "agents" / "canary.py").read_text(encoding="utf-8")
+    assert "WORKER_SECRET" not in source
+    assert "WorkerRegistry" not in source
+    registry.close()
+    bus.close()
+
+

@@ -160,3 +160,21 @@ class SwitchAdapter:
             self._ops = response.json()
         return self._ops
 
+    def call_operation(self, name: str, arguments: dict[str, object]) -> dict[str, Any]:
+        schema = find_operation(self.operations(), name)
+        if schema is None:
+            raise AdapterError(f"GET /ops did not list {name}. Fire Drill will not call it.")
+        payload = filter_arguments(schema, arguments)
+        response = httpx.post(
+            f"{self.base_url}/agents/{self.agent_id}/ops/{name}",
+            headers=self._headers(),
+            json=payload,
+            timeout=20.0,
+        )
+        if response.status_code >= 400:
+            raise AdapterError(f"POST /ops/{name} returned {response.status_code}.")
+        body = response.json()
+        if isinstance(body, dict):
+            return body
+        return {"result": body}
+

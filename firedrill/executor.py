@@ -12,3 +12,4 @@ class ExecutorRefusal(RuntimeError):
     pass
 
 
+class Executor:

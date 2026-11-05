@@ -139,3 +139,11 @@ class AuditorStore:
             )
             self._conn.commit()
 
+    def set_mast(self, request_id: str, mast_mode: str) -> None:
+        with self._lock:
+            self._conn.execute(
+                "UPDATE requests SET mast_mode = ? WHERE id = ?",
+                (mast_mode, request_id),
+            )
+            self._conn.commit()
+

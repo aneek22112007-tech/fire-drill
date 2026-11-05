@@ -44,3 +44,13 @@ class DrillPaths:
         return self.auditor_dir / "drill.db"
 
     @property
+    def sample_repo(self) -> Path:
+        env = os.environ.get("FIREDRILL_SAMPLE_REPO")
+        if env:
+            return Path(env)
+        bundled = self.root / "sample_repo"
+        if bundled.exists():
+            return bundled
+        return repo_root() / "sample_repo"
+
+    @property

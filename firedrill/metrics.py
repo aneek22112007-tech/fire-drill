@@ -155,3 +155,7 @@ def compute_metrics(
     )
 
 
+def _latency(row: dict[str, object], closed: dict[str, Decision]) -> float:
+    return closed[str(row["id"])].latency_s
+
+

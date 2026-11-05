@@ -95,3 +95,17 @@ def test_flatness_rules():
     assert is_flat(spread) is True
 
 
+def test_routing_and_batch_notes():
+    last = {"avery": "2026-11-05T15:00:10.000Z", "blake": None, "casey": "2026-11-05T15:00:01.000Z"}
+    assert route_high_risk(["avery", "blake", "casey"], last) == "blake"
+    note = note_high_risk(["avery", "blake", "casey"], last)
+    assert note.reviewer == "blake"
+    assert "oldest last decision" in note.reason
+    pending = ["a", "b", "c", "d"]
+    assert take_low_risk_batch(pending, 3) == ["a", "b", "c"]
+    assert pending == ["d"]
+    batch = note_low_risk_batch(3)
+    assert batch.rule == "batch_low_risk"
+    assert "3" in batch.reason
+
+

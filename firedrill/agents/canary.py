@@ -22,3 +22,4 @@ def load_library(path: Path) -> list[Flaw]:
     return [Flaw.model_validate(item) for item in raw["flaws"]]
 
 
+class Canary:

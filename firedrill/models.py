@@ -67,3 +67,16 @@ class DrillConfig(BaseModel):
     offline: bool = True
 
 
+class Action(BaseModel):
+    """A structured edit. The executor applies this, never a shell command."""
+
+    kind: Literal["version_bump", "config_set", "add_function"]
+    version: str | None = None
+    key: str | None = None
+    value: str | int | bool | None = None
+    function_name: str | None = None
+    function_body: str | None = None
+    test_name: str | None = None
+    test_body: str | None = None
+
+

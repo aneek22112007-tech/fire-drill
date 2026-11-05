@@ -13,3 +13,7 @@ class ExecutorRefusal(RuntimeError):
 
 
 class Executor:
+    def __init__(self, registry: WorkerRegistry, repo: Path) -> None:
+        self.registry = registry
+        self.repo = Path(repo)
+

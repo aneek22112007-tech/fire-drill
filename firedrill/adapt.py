@@ -28,3 +28,16 @@ def is_flat(
     return False
 
 
+def route_high_risk(reviewers: list[str], last_decision_ts: dict[str, str | None]) -> str:
+    """The reviewer whose last decision is oldest. No decision yet sorts first."""
+
+    if not reviewers:
+        raise ValueError("no reviewers to route to")
+
+    def sort_key(reviewer: str) -> tuple[bool, str, str]:
+        seen = last_decision_ts.get(reviewer)
+        return (seen is not None, seen or "", reviewer)
+
+    return min(reviewers, key=sort_key)
+
+

@@ -56,3 +56,6 @@ class Worker:
     def action_version_bump(self) -> Action:
         return Action(kind="version_bump", version=bump_patch(read_version(self.repo)))
 
+    def action_config(self, key: str, value: str | int | bool) -> Action:
+        return Action(kind="config_set", key=key, value=value)
+

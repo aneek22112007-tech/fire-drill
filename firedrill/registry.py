@@ -24,3 +24,7 @@ def load_worker_secret() -> bytes:
     return secret.encode("utf-8")
 
 
+def sign_request(secret: bytes, request_id: str) -> str:
+    return hmac.new(secret, request_id.encode("utf-8"), hashlib.sha256).hexdigest()
+
+

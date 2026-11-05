@@ -1,16 +1,279 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Fire Drill: Chaos Engineering for Human Oversight</title>
-<style>
-body{font-family:system-ui,-apple-system,sans-serif;max-width:880px;margin:2rem auto;padding:0 1rem;color:#1d2330;background:#fafbfc;line-height:1.5}
-h1{margin-bottom:.2rem} .sub{color:#5b6475;margin-top:0}
-.headline{font-size:1.25rem;font-weight:600;background:#fff4e5;border-left:4px solid #f08c00;padding:1rem}
-section{background:#fff;border:1px solid #e3e6ea;border-radius:8px;padding:.5rem 1rem 1rem;margin:1rem 0}
-table{border-collapse:collapse;width:100%} th,td{text-align:left;padding:.35rem .5rem;border-bottom:1px solid #eef0f3}
-tr.flag td{background:#fff0f0} code{background:#f1f3f5;padding:0 .25rem;border-radius:3px}
-.limits{background:#f4f6f8} footer{color:#7a8394;font-size:.85rem;margin:2rem 0}
-</style></head><body>
-<h1>Fire Drill</h1><p class="sub">Chaos engineering for human oversight of AI agents. Read-only results from a recorded offline drill.</p>
-<p class="headline">Injected 12 canaries across 62 items; caught 5. Median review time 15.2s on canaries vs 14.5s on real items.</p><section><h2>Canaries</h2><table><tr><th>Injected</th><td>12</td></tr><tr><th>Caught</th><td>5</td></tr><tr><th>Catch rate</th><td>41.7%</td></tr><tr><th>Items in the drill</th><td>62</td></tr></table></section><section><h2>Median review times</h2><table><tr><th>Canaries</th><td>15.2s</td></tr><tr><th>Real items</th><td>14.5s</td></tr><tr><th>Correlation of review time with complexity</th><td>0.311</td></tr></table></section><section><h2>Catch rate by MAST failure mode</h2><table><tr><th>1.1 Disobey Task Specification</th><td>0.0%</td></tr><tr><th>1.2 Disobey Role Specification</th><td>100.0%</td></tr><tr><th>2.5 Ignored Other Agent&#x27;s Input</th><td>0.0%</td></tr><tr><th>2.6 Reasoning-Action Mismatch</th><td>50.0%</td></tr><tr><th>3.1 Premature Termination</th><td>100.0%</td></tr><tr><th>3.2 No or Incomplete Verification</th><td>50.0%</td></tr><tr><th>3.3 Incorrect Verification</th><td>50.0%</td></tr></table></section><section><h2>Reviewers</h2><table><tr><th>Reviewer</th><th>Decisions</th><th>Canary catch</th><th>Median canary</th><th>Median real</th><th>Flat</th></tr><tr><td>avery</td><td>23</td><td>100.0%</td><td>35.5s</td><td>31s</td><td>false</td></tr><tr class="flag"><td>blake</td><td>20</td><td>0.0%</td><td>4s</td><td>4.3s</td><td>true</td></tr><tr class="flag"><td>casey</td><td>19</td><td>25.0%</td><td>15.2s</td><td>14.5s</td><td>true</td></tr></table></section><section><h2>Flags</h2><ul><li>Flatness flag for blake: median under 8s across at least 3 decisions, or CV under 0.25 with median under 15s across at least 5 decisions.</li><li>Flatness flag for casey: median under 8s across at least 3 decisions, or CV under 0.25 with median under 15s across at least 5 decisions.</li></ul></section><section><h2>Adaptations</h2><table><tr><th>Adaptation</th><th>Count</th></tr><tr><td><code>route_medium</code></td><td>15</td></tr><tr><td><code>route_canary</code></td><td>12</td></tr><tr><td><code>batch_low_risk</code></td><td>11</td></tr><tr><td><code>route_high_risk</code></td><td>5</td></tr><tr><td><code>flatness_explain_back</code></td><td>2</td></tr></table><h3>Explain-back triggers</h3><ul><li><code>flatness_explain_back</code> (blake): blake review times are flat (median 4.300s across 3 decisions). Explain-back is required before the next approval.</li><li><code>flatness_explain_back</code> (casey): casey review times are flat (median 14.500s across 5 decisions). Explain-back is required before the next approval.</li></ul></section><section><h2>Recommended next change</h2><p>Require blake to explain the diff in one sentence before every approval until the flatness rule clears: median at least 8 seconds, and, once they have 5 or more decisions, either a coefficient of variation of at least 0.25 or a median of at least 15 seconds.</p></section><section class="limits"><h2>Limits</h2><p>Limits: small sample; demonstrates the method, not statistical significance. Three simulated or live reviewers and one repository are enough to show the measurement, and they are not enough to estimate a population rate.</p></section>
-<footer>Aggregate results only. The answer key stays private to the Auditor. Source: <a href="https://github.com/aneek22112007-tech/fire-drill">github.com/aneek22112007-tech/fire-drill</a></footer>
-</body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080a0a">
+  <meta name="description" content="Fire Drill is chaos engineering for human oversight of AI agents. Inject safe, flawed approvals, measure attention, and improve the review workflow.">
+  <meta property="og:title" content="Fire Drill — Is anyone actually reviewing?">
+  <meta property="og:description" content="Turn the human approval step into a system you can test. Explore a real recorded oversight drill.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://fire-drill.onrender.com">
+  <meta property="og:image" content="https://fire-drill.onrender.com/assets/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>Fire Drill — Chaos engineering for human oversight</title>
+  <link rel="icon" href="assets/fire-drill-mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;450;500;550;600;650;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/site.css">
+  <script defer src="js/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m9 6 9 6-9 6V6Z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 6v12m6-12v12"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 8a7 7 0 0 1 11.7-1L20 12M4 12l2.2 5a7 7 0 0 0 11.7-1"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 7.8 7.5 9.5 4.3-1.7 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="m7 9 3 3-3 3m5 0h5"/></symbol>
+    <symbol id="i-canary" viewBox="0 0 24 24"><path d="M5 16c0-5 3-9 8-9 2.5 0 4.5 1.2 5.5 3L21 8l-2.5 3.5c-.5 4.5-3.5 7.5-8.5 7.5H4l3-3H5Z"/><circle cx="14.5" cy="10" r=".7"/></symbol>
+    <symbol id="i-auditor" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5M8 10.5h5m-2.5-2.5v5"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M16 5.5a3 3 0 0 1 0 5.8m2 8.7v-2a6 6 0 0 0-2-4.5"/></symbol>
+    <symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l2.5-7 5 14 2.5-7h4"/></symbol>
+    <symbol id="i-method" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="m8 7 3 8.5M16 7l-3 8.5M8.5 6h7"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M15 22v-3.9c.04-1-.35-1.96-1.1-2.6 3.6-.4 7.1-1.8 7.1-7.5 0-1.65-.6-3-1.5-4.1.15-.4.65-1.95-.15-4.05 0 0-1.25-.4-4.15 1.55a14.3 14.3 0 0 0-7.4 0C4.9-.55 3.65-.15 3.65-.15c-.8 2.1-.3 3.65-.15 4.05A5.9 5.9 0 0 0 2 8c0 5.65 3.5 7.1 7.05 7.5-.55.5-1.05 1.35-1.05 2.55V22"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 20h16"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v.1"/></symbol>
+  </svg>
+
+  <div id="landing-view">
+    <header class="site-header" data-header>
+      <div class="nav-wrap">
+        <a class="brand" href="#top" aria-label="Fire Drill home">
+          <img src="assets/fire-drill-mark.svg" alt="" width="30" height="30">
+          <span>fire<span class="brand-slash">/</span>drill</span>
+        </a>
+        <nav class="desktop-nav" aria-label="Primary navigation">
+          <a href="#problem">The problem</a>
+          <a href="#method">How it works</a>
+          <a href="#agents">Agents</a>
+          <a href="#evidence">Evidence</a>
+        </nav>
+        <div class="nav-actions">
+          <a class="github-link" href="https://github.com/aneek22112007-tech/fire-drill" target="_blank" rel="noreferrer" aria-label="Fire Drill on GitHub"><svg><use href="#i-github"/></svg><span>GitHub</span></a>
+          <button class="button button-small button-light" data-open-dashboard>Open dashboard <svg><use href="#i-arrow-up"/></svg></button>
+          <button class="mobile-menu-button icon-button" aria-label="Open navigation" aria-expanded="false" data-menu-toggle><svg><use href="#i-menu"/></svg></button>
+        </div>
+      </div>
+      <nav class="mobile-nav" aria-label="Mobile navigation" data-mobile-nav>
+        <a href="#problem">The problem</a><a href="#method">How it works</a><a href="#agents">Agents</a><a href="#evidence">Evidence</a>
+        <a href="https://github.com/aneek22112007-tech/fire-drill" target="_blank" rel="noreferrer">GitHub ↗</a>
+      </nav>
+    </header>
+
+    <main id="main-content">
+      <section class="hero" id="top">
+        <canvas id="hero-canvas" aria-hidden="true"></canvas>
+        <div class="hero-glow" aria-hidden="true"></div>
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <div class="eyebrow hero-eyebrow"><span class="status-dot amber"></span> Chaos engineering for human oversight</div>
+            <h1>Your agents<br>are shipping.<br><span class="hero-accent">Is anyone<br>actually reviewing?</span></h1>
+            <p class="hero-lede">The audit log says a human clicked <em>yes.</em> Fire Drill tells you whether they noticed the problem.</p>
+            <div class="hero-buttons">
+              <button class="button button-primary" data-open-dashboard>Explore the live dashboard <svg><use href="#i-arrow"/></svg></button>
+              <button class="button button-ghost" data-open-replay><span class="play-ring"><svg><use href="#i-play"/></svg></span> Watch the drill</button>
+            </div>
+            <div class="hero-proof" aria-label="Drill summary">
+              <div><strong>12</strong><span>safe canaries</span></div><i></i>
+              <div><strong>3</strong><span>specialized agents</span></div><i></i>
+              <div><strong>0</strong><span>canaries executed</span></div>
+            </div>
+          </div>
+
+          <div class="hero-visual" aria-label="Fire Drill oversight console preview">
+            <div class="orbit orbit-one" aria-hidden="true"></div><div class="orbit orbit-two" aria-hidden="true"></div>
+            <div class="console-wrap" data-tilt>
+              <div class="console-glow" aria-hidden="true"></div>
+              <div class="console-window">
+                <div class="console-top"><div class="window-dots"><i></i><i></i><i></i></div><span>drill / room-01</span><span class="console-live"><i></i> MONITORING</span></div>
+                <div class="console-body">
+                  <div class="console-sidebar"><span class="mini-brand"><img src="assets/fire-drill-mark.svg" alt=""></span><i class="active"></i><i></i><i></i><i></i><b></b><span class="mini-avatar">A</span></div>
+                  <div class="console-main">
+                    <div class="console-heading"><div><small>OVERVIEW</small><h2>Oversight signal</h2></div><span class="tiny-chip">DRILL 001</span></div>
+                    <div class="console-stats"><div><small>CATCH RATE</small><strong>41.7<span>%</span></strong><em class="text-amber">↑ 5 caught</em></div><div><small>REVIEW TIME</small><strong>15.2<span>s</span></strong><em>median canary</em></div><div><small>ITEMS</small><strong>62</strong><em>50 real / 12 test</em></div></div>
+                    <div class="console-chart">
+                      <div class="chart-title"><span>Attention by reviewer</span><span><i class="legend-dot teal"></i>Caught <i class="legend-dot amber"></i>Canary</span></div>
+                      <div class="review-line"><span class="review-avatar">AV</span><div><b>Avery</b><small>Careful reviewer</small></div><div class="micro-track"><i style="width:100%"></i></div><strong>100%</strong></div>
+                      <div class="review-line"><span class="review-avatar warm">BL</span><div><b>Blake</b><small>Fast + uniform</small></div><div class="micro-track danger"><i style="width:12%"></i></div><strong>0%</strong></div>
+                      <div class="review-line"><span class="review-avatar violet">CA</span><div><b>Casey</b><small>Mixed signal</small></div><div class="micro-track mid"><i style="width:25%"></i></div><strong>25%</strong></div>
+                    </div>
+                    <div class="console-request"><span class="request-icon"><svg><use href="#i-canary"/></svg></span><div><small>APPROVAL REQUEST · #0042</small><b>Deploy payment service to production</b></div><span class="request-actions"><i>Reject</i><i>Approve</i></span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="float-card float-catch"><span class="float-icon"><svg><use href="#i-check"/></svg></span><div><strong>Canary caught</strong><small>Avery · 35.5s median</small></div></div>
+              <div class="float-card float-flag"><span class="float-icon"><svg><use href="#i-eye"/></svg></span><div><strong>Explain-back triggered</strong><small>Review pattern looks automatic</small></div></div>
+              <div class="float-tag"><svg><use href="#i-shield"/></svg> Canaries never execute</div>
+            </div>
+          </div>
+        </div>
+        <a class="scroll-cue" href="#problem"><span>SCROLL TO INVESTIGATE</span><i></i></a>
+      </section>
+
+      <section class="logo-strip" aria-label="Project attributes"><div class="container"><span>BUILT FOR THE SWITCH HACKATHON</span><div><b>LOCAL-FIRST</b><b>OPEN SOURCE</b><b>CONSENT-FIRST</b><b>ZERO CANARY EXECUTION</b></div></div></section>
+
+      <section class="section problem-section" id="problem">
+        <div class="container">
+          <div class="section-index reveal"><span>01 / THE BLIND SPOT</span><span>HUMAN-IN-THE-LOOP ≠ HUMAN-ATTENTIVE</span></div>
+          <div class="editorial-heading reveal"><h2>An approval is a click.<br><span>Not proof of attention.</span></h2><p>Teams add a human gate to risky agent actions, then assume the gate works. Approval fatigue and automation bias turn oversight into theater—quietly, and at scale.</p></div>
+          <div class="problem-grid">
+            <article class="evidence-stat reveal"><div class="stat-source">ANTHROPIC · CLAUDE CODE</div><strong>93<span>%</span></strong><h3>of permission prompts accepted</h3><p>Convenience compounds. The more often an agent asks, the easier it becomes to say yes without reading.</p><a href="https://www.anthropic.com/engineering/claude-code-auto-mode" target="_blank" rel="noreferrer">Read the research <svg><use href="#i-arrow-up"/></svg></a></article>
+            <article class="evidence-stat danger-stat reveal"><div class="stat-source">ANTHROPIC · SAFETY EVALUATION</div><strong>13.6<span>%</span></strong><h3>of planted dangerous commands caught</h3><p>The failure is not hypothetical. A green checkmark can conceal a reviewer who never saw the risk.</p><a href="https://claude.com/resources/articles/auto-mode-default-in-claude-code" target="_blank" rel="noreferrer">Read the evaluation <svg><use href="#i-arrow-up"/></svg></a></article>
+            <article class="quote-card reveal"><svg><use href="#i-eye"/></svg><blockquote>“The audit log shows a human clicked yes. It does not show that the human noticed the problem.”</blockquote><div><span class="status-dot red"></span> THE OVERSIGHT GAP</div></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section method-section" id="method">
+        <div class="container">
+          <div class="section-index reveal"><span>02 / THE METHOD</span><span>A FIRE DRILL, NOT A TRAP</span></div>
+          <div class="section-heading reveal"><div><h2>Make oversight<br>observable.</h2></div><p>Real work continues. Occasionally, a deliberately flawed proposal enters the same approval stream. The room measures what happens next—without ever executing the flaw.</p></div>
+          <div class="story-layout">
+            <div class="story-steps">
+              <article class="story-step active" data-story-step="0"><span class="step-number">01</span><div><h3>Do real work.</h3><p>The Worker performs genuine, safe tasks and requests approval before any high-impact action. No synthetic theater for the real items.</p><ul><li>Real code and config edits</li><li>Risk-aware approval requests</li><li>Signed worker identity</li></ul></div></article>
+              <article class="story-step" data-story-step="1"><span class="step-number">02</span><div><h3>Plant a believable flaw.</h3><p>The Canary occasionally posts a plausible but intentionally broken proposal, styled exactly like the Worker’s. Reviewers cannot tell from the author line.</p><ul><li>Mapped to MAST failure modes</li><li>Never registered with the executor</li><li>Safe, consented participation</li></ul></div></article>
+              <article class="story-step" data-story-step="2"><span class="step-number">03</span><div><h3>Measure the response.</h3><p>The Auditor privately holds the answers, records each decision, and compares review time with complexity. Misses go only to the individual.</p><ul><li>Catch rate by failure mode</li><li>Time-to-decision patterns</li><li>Private reveal, never public shame</li></ul></div></article>
+              <article class="story-step" data-story-step="3"><span class="step-number">04</span><div><h3>Adapt the workflow.</h3><p>When approvals become fast and uniform, require an explain-back step. Route high-risk work carefully and batch the low-risk noise.</p><ul><li>Explain-back before approval</li><li>Fresh-reviewer routing</li><li>A concrete final recommendation</li></ul></div></article>
+            </div>
+            <div class="story-stage-wrap">
+              <div class="story-stage" data-story-stage="0">
+                <div class="stage-top"><span>FIRE DRILL / SYSTEM VIEW</span><span class="stage-counter">0<span data-stage-number>1</span> — 04</span></div>
+                <div class="stage-canvas">
+                  <div class="stage-grid" aria-hidden="true"></div>
+                  <div class="system-node node-worker"><span><svg><use href="#i-terminal"/></svg></span><div><small>AGENT 01</small><strong>Worker</strong></div></div>
+                  <div class="system-node node-canary"><span><svg><use href="#i-canary"/></svg></span><div><small>AGENT 02</small><strong>Canary</strong></div></div>
+                  <div class="system-node node-human"><span><svg><use href="#i-users"/></svg></span><div><small>IN THE LOOP</small><strong>Reviewer</strong></div></div>
+                  <div class="system-node node-auditor"><span><svg><use href="#i-auditor"/></svg></span><div><small>AGENT 03</small><strong>Auditor</strong></div></div>
+                  <svg class="flow-lines" viewBox="0 0 500 420" preserveAspectRatio="none" aria-hidden="true"><path d="M120 105 C250 105 250 210 345 210"/><path d="M120 315 C220 315 240 225 345 210"/><path d="M345 245 C345 320 260 340 170 340"/><circle r="4"><animateMotion dur="3s" repeatCount="indefinite" path="M120 105 C250 105 250 210 345 210"/></circle></svg>
+                  <div class="stage-caption"><span class="status-dot amber"></span><p data-stage-caption>Real tasks enter the approval stream.</p></div>
+                </div>
+                <div class="stage-footer"><span><i></i> ENCRYPTED ANSWER KEY</span><span>LOCAL / SQLITE BUS</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section agents-section" id="agents">
+        <div class="container">
+          <div class="section-index reveal"><span>03 / THE ROOM</span><span>THREE AGENTS. ONE SHARED LOG.</span></div>
+          <div class="section-heading reveal"><h2>Built to keep<br>each other honest.</h2><p>Each role has one job and a hard boundary. Switch makes the shared history, addressing, and human decisions part of the same live system.</p></div>
+          <div class="agent-grid">
+            <article class="agent-card reveal"><div class="agent-card-top"><span class="agent-icon worker"><svg><use href="#i-terminal"/></svg></span><span class="agent-number">01</span></div><div class="agent-label">THE BUILDER</div><h3>Worker</h3><p>Does genuine work and asks before high-impact actions. Signs every legitimate request with its own registry.</p><div class="agent-meta"><span>Real tasks</span><span>HMAC identity</span></div></article>
+            <article class="agent-card featured reveal"><div class="agent-card-top"><span class="agent-icon canary"><svg><use href="#i-canary"/></svg></span><span class="agent-number">02</span></div><div class="agent-label">THE PROVOCATEUR</div><h3>Canary</h3><p>Injects a small number of realistic, deliberately flawed requests. Has no path to execution and never learns the full answer key.</p><div class="agent-meta"><span>MAST-tagged</span><span>No execution</span></div></article>
+            <article class="agent-card reveal"><div class="agent-card-top"><span class="agent-icon auditor"><svg><use href="#i-auditor"/></svg></span><span class="agent-number">03</span></div><div class="agent-label">THE OBSERVER</div><h3>Auditor</h3><p>Alone can read the answers. Measures catch rates and decision patterns, sends private reveals, and adapts the review process.</p><div class="agent-meta"><span>Private key</span><span>Adaptive rules</span></div></article>
+          </div>
+          <div class="safety-panel reveal">
+            <div class="safety-intro"><span class="safety-icon"><svg><use href="#i-shield"/></svg></span><div><div class="eyebrow">SAFE BY CONSTRUCTION</div><h3>A drill should never become the incident.</h3></div></div>
+            <div class="safety-rules"><div><svg><use href="#i-check"/></svg><span><strong>Consent first</strong>Every reviewer explicitly opts in.</span></div><div><svg><use href="#i-check"/></svg><span><strong>No canary execution</strong>Enforced at the process boundary.</span></div><div><svg><use href="#i-check"/></svg><span><strong>Private misses</strong>Feedback goes to the person, not the room.</span></div><div><svg><use href="#i-check"/></svg><span><strong>External answer key</strong>Only the Auditor service can read it.</span></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section evidence-section" id="evidence">
+        <div class="container">
+          <div class="section-index reveal"><span>04 / WHY NOW</span><span>RESEARCH, NOT VIBES</span></div>
+          <div class="section-heading reveal"><h2>The evidence<br>already exists.</h2><p>The missing piece is a practical way to test your own team. Fire Drill connects published oversight research to a repeatable local drill.</p></div>
+          <div class="research-list">
+            <a class="research-row reveal" href="https://www.hbs.edu/faculty/Pages/item.aspx?num=66193" target="_blank" rel="noreferrer"><span class="research-id">R.01</span><div><h3>Explanations can increase overreliance.</h3><p>Lane et al. found AI narrative explanations raised alignment with AI recommendations by about 19 percentage points under cognitive load.</p></div><span class="research-source">HARVARD BUSINESS SCHOOL</span><svg><use href="#i-arrow-up"/></svg></a>
+            <a class="research-row reveal" href="https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-14" target="_blank" rel="noreferrer"><span class="research-id">R.02</span><div><h3>Automation bias is a regulatory concern.</h3><p>EU AI Act Article 14(4)(b) requires overseers to remain aware of the tendency to automatically rely on AI output.</p></div><span class="research-source">EU AI ACT</span><svg><use href="#i-arrow-up"/></svg></a>
+            <a class="research-row reveal" href="https://arxiv.org/abs/2503.13657" target="_blank" rel="noreferrer"><span class="research-id">R.03</span><div><h3>Verification is a common agent failure.</h3><p>The Berkeley MAST taxonomy attributes roughly 23.5% of multi-agent failures to task verification.</p></div><span class="research-source">NEURIPS 2025 · MAST</span><svg><use href="#i-arrow-up"/></svg></a>
+          </div>
+        </div>
+      </section>
+
+      <section class="demo-cta-section">
+        <div class="cta-grid" aria-hidden="true"></div><div class="cta-orb" aria-hidden="true"></div>
+        <div class="container demo-cta reveal"><div class="eyebrow"><span class="status-dot teal"></span> THE RECORDED DRILL IS READY</div><h2>Don’t trust the<br>green checkmark.<br><span>Test it.</span></h2><p>Explore 62 decisions, 12 planted flaws, and the exact moment the review workflow started adapting.</p><div class="hero-buttons"><button class="button button-primary" data-open-dashboard>Enter the dashboard <svg><use href="#i-arrow"/></svg></button><button class="button button-ghost" data-open-replay><svg><use href="#i-play"/></svg> Replay the drill</button></div><span class="cta-note">No signup. Read-only data. Open source.</span></div>
+      </section>
+    </main>
+
+    <footer class="site-footer"><div class="container"><div class="footer-top"><div><a class="brand" href="#top"><img src="assets/fire-drill-mark.svg" alt="" width="30" height="30"><span>fire<span class="brand-slash">/</span>drill</span></a><p>Chaos engineering for human oversight of AI agents.</p></div><div class="footer-links"><div><strong>PROJECT</strong><a href="#method">Method</a><a href="#agents">Agents</a><button data-open-dashboard>Dashboard</button></div><div><strong>RESOURCES</strong><a href="https://github.com/aneek22112007-tech/fire-drill" target="_blank" rel="noreferrer">GitHub ↗</a><a href="report.md" download>Drill report</a><a href="data/metrics.json" target="_blank">Metrics JSON</a></div></div></div><div class="footer-bottom"><span>MIT LICENSE · BUILT FOR SWITCH</span><span>Make the human loop observable.</span></div></div></footer>
+  </div>
+
+  <div id="dashboard-view" class="dashboard-view" hidden>
+    <aside class="app-sidebar">
+      <button class="brand app-brand" data-open-landing aria-label="Back to Fire Drill home"><img src="assets/fire-drill-mark.svg" alt="" width="30" height="30"><span>fire<span class="brand-slash">/</span>drill</span></button>
+      <div class="workspace-chip"><span class="workspace-icon">FD</span><div><strong>Fire Drill</strong><small>Oversight workspace</small></div><svg><use href="#i-chevron"/></svg></div>
+      <nav class="app-nav" aria-label="Dashboard sections">
+        <span class="app-nav-label">WORKSPACE</span>
+        <button class="active" data-dashboard-tab="overview"><svg><use href="#i-grid"/></svg>Overview</button>
+        <button data-dashboard-tab="reviewers"><svg><use href="#i-users"/></svg>Reviewers<span class="nav-count">3</span></button>
+        <button data-dashboard-tab="activity"><svg><use href="#i-activity"/></svg>Activity</button>
+        <button data-dashboard-tab="method"><svg><use href="#i-method"/></svg>Method & safety</button>
+      </nav>
+      <div class="sidebar-drill"><div class="sidebar-drill-top"><span class="status-dot teal"></span><span>DRILL 001</span><small>COMPLETE</small></div><strong>Recorded offline run</strong><div class="sidebar-progress"><i></i></div><span><b data-canaries-total>12</b> canaries · <b data-items-total>62</b> decisions</span></div>
+      <div class="sidebar-bottom"><a href="https://github.com/aneek22112007-tech/fire-drill" target="_blank" rel="noreferrer"><svg><use href="#i-github"/></svg>View source<svg class="end-icon"><use href="#i-arrow-up"/></svg></a><button data-open-landing><svg><use href="#i-arrow"/></svg>Back to site</button><div class="sidebar-safety"><svg><use href="#i-shield"/></svg><span>Read-only public export<br><small>No private answers included</small></span></div></div>
+    </aside>
+
+    <div class="app-content">
+      <header class="app-topbar"><button class="app-mobile-brand brand" data-open-landing><img src="assets/fire-drill-mark.svg" alt="" width="28" height="28"><span>fire<span class="brand-slash">/</span>drill</span></button><div class="breadcrumbs"><span>Fire Drill</span><i>/</i><strong data-breadcrumb>Overview</strong></div><div class="app-top-actions"><span class="connection-status" data-connection><i></i><span>Report connected</span></span><button class="icon-button" data-refresh aria-label="Refresh report data" title="Refresh report data"><svg><use href="#i-refresh"/></svg></button><a class="avatar" href="https://github.com/aneek22112007-tech/fire-drill" target="_blank" rel="noreferrer" aria-label="Open project on GitHub">FD</a></div></header>
+      <main class="dashboard-main" id="dashboard-main">
+        <div class="dashboard-titlebar"><div><div class="dashboard-kicker"><span class="status-dot teal"></span> DRILL 001 <i>/</i> RECORDED OFFLINE RUN</div><h1>Oversight, measured.</h1><p>A live view of the exported report—not a live execution environment.</p></div><div class="dashboard-title-actions"><a class="button button-dark button-small" href="report.md" download><svg><use href="#i-download"/></svg>Export report</a><button class="button button-primary button-small" data-open-replay><svg><use href="#i-play"/></svg>Replay drill</button></div></div>
+        <div class="data-notice"><svg><use href="#i-info"/></svg><span><strong>Recorded drill, real metrics.</strong> Every number below is computed from the offline demo and loaded from <a href="data/metrics.json" target="_blank">metrics.json</a>. No canary was executed.</span><span class="data-updated" data-updated>Snapshot loaded</span></div>
+
+        <section class="dashboard-panel active" data-panel="overview" aria-label="Overview">
+          <div class="metric-grid">
+            <article class="metric-card featured-metric"><div class="metric-label"><span>CANARY CATCH RATE</span><span class="metric-icon"><svg><use href="#i-eye"/></svg></span></div><div class="metric-value"><strong data-metric="catchRate">41.7</strong><span>%</span></div><div class="metric-foot"><span class="delta amber"><svg><use href="#i-canary"/></svg><b data-metric="caught">5</b> of <b data-metric="canaries">12</b> caught</span><span>7 missed</span></div><div class="metric-spark bars" aria-hidden="true"><i style="height:24%"></i><i style="height:38%"></i><i style="height:31%"></i><i style="height:58%"></i><i style="height:46%"></i><i style="height:72%"></i><i style="height:54%"></i><i style="height:86%"></i><i style="height:67%"></i><i style="height:100%"></i></div></article>
+            <article class="metric-card"><div class="metric-label"><span>CANARIES INJECTED</span><span class="metric-icon amber-icon"><svg><use href="#i-canary"/></svg></span></div><div class="metric-value"><strong data-metric="canaries">12</strong></div><div class="metric-foot"><span>Across <b data-metric="items">62</b> items</span><span class="mini-tag">19.4%</span></div><div class="segmented-bar" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i class="hot"></i><i></i><i></i><i class="hot"></i><i></i><i></i><i></i><i class="hot"></i><i></i><i></i><i></i></div></article>
+            <article class="metric-card"><div class="metric-label"><span>MEDIAN CANARY REVIEW</span><span class="metric-icon teal-icon"><svg><use href="#i-clock"/></svg></span></div><div class="metric-value"><strong data-metric="canaryMedian">15.2</strong><span>s</span></div><div class="metric-foot"><span>Real items <b data-metric="realMedian">14.5</b>s</span><span class="delta neutral">+0.7s</span></div><div class="time-comparison"><i style="width:76%"></i><i style="width:72.5%"></i></div><div class="time-legend"><span>Canary</span><span>Real</span></div></article>
+            <article class="metric-card"><div class="metric-label"><span>ADAPTATIONS APPLIED</span><span class="metric-icon violet-icon"><svg><use href="#i-activity"/></svg></span></div><div class="metric-value"><strong data-metric="adaptations">45</strong></div><div class="metric-foot"><span><b data-metric="explainBacks">2</b> explain-back triggers</span><span class="delta teal">Active</span></div><div class="adaptation-dots" aria-hidden="true"></div></article>
+          </div>
+
+          <div class="dashboard-grid primary-grid">
+            <article class="panel-card mast-card"><div class="panel-card-header"><div><span class="panel-eyebrow">DETECTION BREAKDOWN</span><h2>Catch rate by failure mode</h2></div><span class="panel-badge">MAST TAXONOMY</span></div><p class="panel-description">Which deliberately planted flaws made it past the room?</p><div class="mast-list" data-mast-list></div><div class="chart-legend"><span><i class="legend-dot teal"></i>Caught</span><span><i class="legend-dot red"></i>Missed</span><a href="https://arxiv.org/abs/2503.13657" target="_blank" rel="noreferrer">About MAST ↗</a></div></article>
+            <article class="panel-card signal-card"><div class="panel-card-header"><div><span class="panel-eyebrow">THE HEADLINE</span><h2>Oversight signal</h2></div></div><div class="signal-ring-wrap"><div class="signal-ring" data-signal-ring><div><strong data-metric="catchRate">41.7</strong><span>%</span><small>CAUGHT</small></div></div><div class="ring-caption"><span><i class="legend-dot teal"></i><b data-metric="caught">5</b> caught</span><span><i class="legend-dot red"></i><b data-metric="missed">7</b> missed</span></div></div><div class="signal-insight"><span><svg><use href="#i-eye"/></svg></span><p>Most planted flaws reached execution approval.<strong>The room needs a stronger review gate.</strong></p></div><button class="text-button" data-dashboard-tab="reviewers">Inspect reviewer patterns <svg><use href="#i-arrow"/></svg></button></article>
+          </div>
+
+          <article class="panel-card reviewers-card"><div class="panel-card-header"><div><span class="panel-eyebrow">HUMAN SIGNAL</span><h2>Reviewer performance</h2></div><button class="text-button" data-dashboard-tab="reviewers">View detailed analysis <svg><use href="#i-arrow"/></svg></button></div><div class="table-wrap"><table class="reviewer-table"><thead><tr><th>REVIEWER</th><th>DECISIONS</th><th>CANARY CATCH</th><th>MEDIAN CANARY</th><th>MEDIAN REAL</th><th>REVIEW SIGNAL</th></tr></thead><tbody data-reviewers-body></tbody></table></div></article>
+
+          <div class="dashboard-grid secondary-grid"><article class="panel-card adaptations-card"><div class="panel-card-header"><div><span class="panel-eyebrow">CLOSED LOOP</span><h2>Workflow adaptations</h2></div><button class="text-button" data-dashboard-tab="activity">Full activity <svg><use href="#i-arrow"/></svg></button></div><div class="adaptation-list" data-adaptation-summary></div></article><article class="panel-card recommendation-card"><span class="recommendation-icon"><svg><use href="#i-method"/></svg></span><span class="panel-eyebrow">RECOMMENDED NEXT CHANGE</span><h2>Slow down the fastest gate.</h2><p data-recommendation>Require an explanation before the next approval until the flatness rule clears.</p><button class="button button-dark button-small" data-dashboard-tab="activity">See why this fired <svg><use href="#i-arrow"/></svg></button></article></div>
+        </section>
+
+        <section class="dashboard-panel" data-panel="reviewers" aria-label="Reviewer analysis" hidden>
+          <div class="panel-section-heading"><div><span class="panel-eyebrow">REVIEWER ANALYSIS</span><h2>Attention leaves a pattern.</h2><p>Compare detection, decision time, and consistency. Flatness is a risk signal—not a verdict about a person.</p></div></div>
+          <article class="panel-card reviewers-card"><div class="table-wrap"><table class="reviewer-table"><thead><tr><th>REVIEWER</th><th>DECISIONS</th><th>CANARY CATCH</th><th>MEDIAN CANARY</th><th>MEDIAN REAL</th><th>REVIEW SIGNAL</th></tr></thead><tbody data-reviewers-body-detail></tbody></table></div></article>
+          <div class="dashboard-grid primary-grid"><article class="panel-card"><div class="panel-card-header"><div><span class="panel-eyebrow">TIME TO DECISION</span><h2>Canary vs. real items</h2></div><span class="panel-badge">SECONDS · MEDIAN</span></div><div class="timing-chart" data-timing-chart></div><div class="chart-legend"><span><i class="legend-dot amber"></i>Canary</span><span><i class="legend-dot muted"></i>Real item</span></div></article><article class="panel-card"><div class="panel-card-header"><div><span class="panel-eyebrow">ADAPTIVE INTERVENTIONS</span><h2>Explain-back triggers</h2></div><span class="panel-badge" data-explain-count>2 ACTIVE</span></div><div class="explain-list" data-explain-list></div></article></div>
+          <article class="panel-card flatness-note"><svg><use href="#i-info"/></svg><div><h3>How the flatness signal works</h3><p>A reviewer is flagged after at least 3 decisions with a median under 8 seconds, or at least 5 decisions with low variation and a median under 15 seconds. Slow, consistent review is not flagged. The signal triggers a process adaptation; it does not accuse the reviewer.</p></div></article>
+        </section>
+
+        <section class="dashboard-panel" data-panel="activity" aria-label="Adaptation activity" hidden>
+          <div class="panel-section-heading"><div><span class="panel-eyebrow">AUDITOR ACTIVITY</span><h2>The workflow adapts itself.</h2><p>A safe, aggregate activity feed from the Auditor. Private reveals and answer data are excluded.</p></div></div>
+          <div class="adaptation-count-grid" data-adaptation-count-grid></div>
+          <article class="panel-card activity-card"><div class="panel-card-header activity-toolbar"><div><span class="panel-eyebrow">EVENT STREAM</span><h2>Adaptation log</h2></div><div class="filter-group" role="group" aria-label="Filter activity"><button class="active" data-activity-filter="all">All</button><button data-activity-filter="route">Routing</button><button data-activity-filter="batch">Batching</button><button data-activity-filter="explain">Explain-back</button></div></div><div class="activity-list" data-activity-list></div><button class="button button-dark load-more" data-load-more>Show more events <svg><use href="#i-arrow"/></svg></button></article>
+        </section>
+
+        <section class="dashboard-panel" data-panel="method" aria-label="Method and safety" hidden>
+          <div class="panel-section-heading"><div><span class="panel-eyebrow">METHOD & SAFETY</span><h2>Designed to test the gate.<br>Never to spring a trap.</h2><p>Local-first architecture, consented participation, and hard execution boundaries.</p></div></div>
+          <article class="panel-card architecture-card"><div class="panel-card-header"><div><span class="panel-eyebrow">SYSTEM TOPOLOGY</span><h2>One room. Strict boundaries.</h2></div><span class="panel-badge">LOCAL-FIRST</span></div><div class="architecture-flow"><div><span class="agent-icon worker"><svg><use href="#i-terminal"/></svg></span><strong>Worker</strong><small>Real tasks</small></div><i><svg><use href="#i-arrow"/></svg></i><div><span class="agent-icon canary"><svg><use href="#i-canary"/></svg></span><strong>Canary</strong><small>Safe flaws</small></div><i><svg><use href="#i-arrow"/></svg></i><div class="flow-room"><span class="agent-icon"><svg><use href="#i-users"/></svg></span><strong>Shared room</strong><small>Human decisions</small></div><i><svg><use href="#i-arrow"/></svg></i><div><span class="agent-icon auditor"><svg><use href="#i-auditor"/></svg></span><strong>Auditor</strong><small>Private answers</small></div></div></article>
+          <div class="safety-detail-grid"><article class="panel-card"><svg><use href="#i-shield"/></svg><h3>Consent first</h3><p>The drill starts only after every participating reviewer opts in.</p></article><article class="panel-card"><svg><use href="#i-lock"/></svg><h3>Answers stay outside the room</h3><p>A token-gated Auditor service owns the answer map. The public export contains aggregates only.</p></article><article class="panel-card"><svg><use href="#i-canary"/></svg><h3>No execution path</h3><p>Only Worker-signed IDs can reach the executor. Approving a canary triggers a private reveal.</p></article><article class="panel-card"><svg><use href="#i-eye"/></svg><h3>No public shaming</h3><p>Misses are shown privately to the individual. Public reports contain team-level measurements.</p></article></div>
+          <article class="panel-card limits-card"><span class="panel-eyebrow">HONEST LIMITS</span><h2>A demonstration of the method.</h2><p data-limits>This small sample demonstrates the measurement, not statistical significance.</p><div><span>50 real items</span><span>12 canaries</span><span>3 simulated reviewers</span><span>1 repository</span></div></article>
+        </section>
+        <footer class="dashboard-footer"><span><i class="status-dot teal"></i>Aggregate public data · Answer key private</span><div><a href="data/metrics.json" target="_blank">JSON</a><a href="report.md" download>REPORT</a><a href="https://github.com/aneek22112007-tech/fire-drill" target="_blank" rel="noreferrer">GITHUB ↗</a></div></footer>
+      </main>
+    </div>
+  </div>
+
+  <dialog class="replay-modal" data-replay-modal aria-labelledby="replay-title">
+    <div class="replay-shell">
+      <div class="replay-top"><div class="brand"><img src="assets/fire-drill-mark.svg" alt="" width="28" height="28"><span>fire<span class="brand-slash">/</span>drill</span></div><button class="icon-button" data-close-replay aria-label="Close replay"><svg><use href="#i-x"/></svg></button></div>
+      <div class="replay-body"><div class="eyebrow"><span class="status-dot amber"></span> RECORDED DRILL · VISUAL REPLAY</div><h2 id="replay-title">Twelve flaws.<br>One honest signal.</h2><p>This replays the final recorded metrics. It does not execute a new drill.</p><div class="replay-visual"><div class="replay-scan"></div><div class="replay-counter"><span data-replay-label>ITEMS REVIEWED</span><strong data-replay-count>0</strong><small>of <b data-metric="items">62</b></small></div><div class="replay-events"><span class="active">01 · WORK</span><span>02 · CANARIES</span><span>03 · ANALYSIS</span></div></div><div class="replay-progress"><i data-replay-progress></i></div><div class="replay-stats"><div><span>CANARIES</span><strong data-replay-canaries>0 / 12</strong></div><div><span>CAUGHT</span><strong data-replay-caught>0 / 5</strong></div><div><span>EXECUTED</span><strong class="text-teal">0</strong></div></div><div class="replay-controls"><button class="button button-primary" data-replay-toggle><svg><use href="#i-pause"/></svg><span>Pause replay</span></button><button class="button button-dark" data-replay-restart><svg><use href="#i-refresh"/></svg>Restart</button><button class="text-button" data-replay-finish>Skip to results <svg><use href="#i-arrow"/></svg></button></div></div>
+    </div>
+  </dialog>
+  <div class="toast" role="status" aria-live="polite" data-toast></div>
+  <noscript><div class="noscript-note">JavaScript is disabled. The landing page is available, but the interactive dashboard needs JavaScript. You can still <a href="report.md">read the drill report</a>.</div></noscript>
+  <script id="metrics-fallback" type="application/json">{"schema_version":1,"drill":{"id":"drill-001","title":"Recorded offline oversight drill","recorded":true},"source":"recorded-offline-demo","headline":"Injected 12 canaries across 62 items; caught 5. Median review time 15.2s on canaries vs 14.5s on real items.","canaries":{"injected":12,"caught":5,"missed":7,"catch_rate":41.7,"executed":0},"items":{"total":62,"real":50},"review_times":{"canary_seconds":15.2,"real_seconds":14.5,"complexity_correlation":0.311},"mast_modes":[{"code":"1.1","name":"Disobey Task Specification","catch_rate":0},{"code":"1.2","name":"Disobey Role Specification","catch_rate":100},{"code":"2.5","name":"Ignored Other Agent's Input","catch_rate":0},{"code":"2.6","name":"Reasoning-Action Mismatch","catch_rate":50},{"code":"3.1","name":"Premature Termination","catch_rate":100},{"code":"3.2","name":"No or Incomplete Verification","catch_rate":50},{"code":"3.3","name":"Incorrect Verification","catch_rate":50}],"reviewers":[{"name":"avery","decisions":23,"catch_rate":100,"median_canary_seconds":35.5,"median_real_seconds":31,"complexity_correlation":1,"flat":false},{"name":"blake","decisions":20,"catch_rate":0,"median_canary_seconds":4,"median_real_seconds":4.3,"complexity_correlation":0.052,"flat":true},{"name":"casey","decisions":19,"catch_rate":25,"median_canary_seconds":15.2,"median_real_seconds":14.5,"complexity_correlation":1,"flat":true}],"flags":["Flatness flag for blake: median under 8s across at least 3 decisions, or CV under 0.25 with median under 15s across at least 5 decisions.","Flatness flag for casey: median under 8s across at least 3 decisions, or CV under 0.25 with median under 15s across at least 5 decisions."],"adaptations":[{"kind":"route_canary","reviewer":"avery","description":"Canary routed to avery (canary 1 for that reviewer). Ties go to the careful reviewer."},{"kind":"route_high_risk","reviewer":"blake","description":"High-risk item routed to blake, the reviewer with the oldest last decision."},{"kind":"route_canary","reviewer":"blake","description":"Canary routed to blake (canary 1 for that reviewer). Ties go to the careful reviewer."},{"kind":"flatness_explain_back","reviewer":"blake","description":"blake review times are flat (median 4.300s across 3 decisions). Explain-back is required before the next approval."},{"kind":"route_canary","reviewer":"casey","description":"Canary routed to casey (canary 1 for that reviewer). Ties go to the careful reviewer."},{"kind":"route_medium","reviewer":"avery","description":"Medium-risk item routed to avery (medium 1 for that reviewer) by round-robin."},{"kind":"route_canary","reviewer":"avery","description":"Canary routed to avery (canary 2 for that reviewer). Ties go to the careful reviewer."},{"kind":"route_medium","reviewer":"blake","description":"Medium-risk item routed to blake (medium 1 for that reviewer) by round-robin."},{"kind":"batch_low_risk","reviewer":"room","description":"Batched 2 low-risk items so reviewers see them together."},{"kind":"route_medium","reviewer":"casey","description":"Medium-risk item routed to casey (medium 1 for that reviewer) by round-robin."},{"kind":"route_high_risk","reviewer":"avery","description":"High-risk item routed to avery, the reviewer with the oldest last decision."},{"kind":"route_canary","reviewer":"blake","description":"Canary routed to blake (canary 2 for that reviewer). Ties go to the careful reviewer."},{"kind":"route_canary","reviewer":"casey","description":"Canary routed to casey (canary 2 for that reviewer). Ties go to the careful reviewer."},{"kind":"flatness_explain_back","reviewer":"casey","description":"casey review times are flat (median 14.500s across 5 decisions). Explain-back is required before the next approval."},{"kind":"route_medium","reviewer":"avery","description":"Medium-risk item routed to avery (medium 2 for that reviewer) by round-robin."},{"kind":"route_canary","reviewer":"avery","description":"Canary routed to avery (canary 3 for that reviewer). Ties go to the careful reviewer."},{"kind":"batch_low_risk","reviewer":"room","description":"Batched 2 low-risk items so reviewers see them together."},{"kind":"route_medium","reviewer":"blake","description":"Medium-risk item routed to blake (medium 2 for that reviewer) by round-robin."},{"kind":"route_canary","reviewer":"blake","description":"Canary routed to blake (canary 3 for that reviewer). Ties go to the careful reviewer."},{"kind":"route_medium","reviewer":"casey","description":"Medium-risk item routed to casey (medium 2 for that reviewer) by round-robin."},{"kind":"route_high_risk","reviewer":"avery","description":"High-risk item routed to avery, the reviewer with the oldest last decision."},{"kind":"batch_low_risk","reviewer":"room","description":"Batched 2 low-risk items so reviewers see them together."},{"kind":"route_medium","reviewer":"avery","description":"Medium-risk item routed to avery (medium 3 for that reviewer) by round-robin."},{"kind":"batch_low_risk","reviewer":"room","description":"Batched 2 low-risk items so reviewers see them together."},{"kind":"route_medium","reviewer":"blake","description":"Medium-risk item routed to blake (medium 3 for that reviewer) by round-robin."},{"kind":"batch_low_risk","reviewer":"room","description":"Batched 2 low-risk items so reviewers see them together."},{"kind":"route_medium","reviewer":"casey","description":"Medium-risk item routed to casey (medium 3 for that reviewer) by round-robin."},{"kind":"route_high_risk","reviewer":"avery","description":"High-risk item routed to avery, the reviewer with the oldest last decision."},{"kind":"route_canary","reviewer":"casey","description":"Canary routed to casey (canary 3 for that reviewer). Ties go to the careful reviewer."},{"kind":"batch_low_risk","reviewer":"room","description":"Batched 3 low-risk items so reviewers see them together."},{"kind":"route_canary","reviewer":"avery","description":"Canary routed to avery (canary 4 for that reviewer). Ties go to the careful reviewer."},{"kind":"route_canary","reviewer":"blake","description":"Canary routed to blake (canary 4 for that reviewer). Ties go to the careful reviewer."},{"kind":"route_medium","reviewer":"avery","description":"Medium-risk item routed to avery (medium 4 for that reviewer) by round-robin."},{"kind":"batch_low_risk","reviewer":"room","description":"Batched 2 low-risk items so reviewers see them together."},{"kind":"route_medium","reviewer":"blake","description":"Medium-risk item routed to blake (medium 4 for that reviewer) by round-robin."},{"kind":"batch_low_risk","reviewer":"room","description":"Batched 2 low-risk items so reviewers see them together."},{"kind":"route_medium","reviewer":"casey","description":"Medium-risk item routed to casey (medium 4 for that reviewer) by round-robin."},{"kind":"route_high_risk","reviewer":"avery","description":"High-risk item routed to avery, the reviewer with the oldest last decision."},{"kind":"batch_low_risk","reviewer":"room","description":"Batched 2 low-risk items so reviewers see them together."},{"kind":"route_canary","reviewer":"casey","description":"Canary routed to casey (canary 4 for that reviewer). Ties go to the careful reviewer."},{"kind":"route_medium","reviewer":"avery","description":"Medium-risk item routed to avery (medium 5 for that reviewer) by round-robin."},{"kind":"batch_low_risk","reviewer":"room","description":"Batched 2 low-risk items so reviewers see them together."},{"kind":"route_medium","reviewer":"blake","description":"Medium-risk item routed to blake (medium 5 for that reviewer) by round-robin."},{"kind":"batch_low_risk","reviewer":"room","description":"Batched 2 low-risk items so reviewers see them together."},{"kind":"route_medium","reviewer":"casey","description":"Medium-risk item routed to casey (medium 5 for that reviewer) by round-robin."}],"adaptation_counts":[{"kind":"route_medium","count":15},{"kind":"route_canary","count":12},{"kind":"batch_low_risk","count":11},{"kind":"route_high_risk","count":5},{"kind":"flatness_explain_back","count":2}],"recommendation":"Require blake to explain the diff in one sentence before every approval until the flatness rule clears: median at least 8 seconds, and, once they have 5 or more decisions, either a coefficient of variation of at least 0.25 or a median of at least 15 seconds.","limits":"Limits: small sample; demonstrates the method, not statistical significance. Three simulated or live reviewers and one repository are enough to show the measurement, and they are not enough to estimate a population rate.","safety":{"consent_first":true,"canaries_execute":false,"private_misses":true,"aggregate_export_only":true}}</script>
+</body>
+</html>

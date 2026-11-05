@@ -159,3 +159,11 @@ def _latency(row: dict[str, object], closed: dict[str, Decision]) -> float:
     return closed[str(row["id"])].latency_s
 
 
+def _pairs(requests: list[dict[str, object]], closed: dict[str, Decision]) -> list[tuple[float, float]]:
+    pairs: list[tuple[float, float]] = []
+    for row in requests:
+        decision = closed.get(str(row["id"]))
+        if decision is None:
+            continue
+        pairs.append((float(row["complexity"]), decision.latency_s))
+    return pairs

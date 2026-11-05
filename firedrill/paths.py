@@ -36,3 +36,7 @@ class DrillPaths:
         return self.auditor_dir / "key.json"
 
     @property
+    def tokens_file(self) -> Path:
+        return self.auditor_dir / "tokens.json"
+
+    @property

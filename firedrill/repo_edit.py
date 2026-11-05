@@ -33,3 +33,14 @@ def parse_flat_config(text: str) -> dict[str, str | int | bool]:
     return data
 
 
+def dump_flat_config(data: dict[str, str | int | bool]) -> str:
+    lines: list[str] = []
+    for key, value in data.items():
+        if isinstance(value, bool):
+            rendered = "true" if value else "false"
+        else:
+            rendered = str(value)
+        lines.append(f"{key}: {rendered}")
+    return "\n".join(lines) + "\n"
+
+

@@ -68,3 +68,9 @@ def miss_dm(flaw_id: str, title: str, tell: str) -> str:
     )
 
 
+def catch_dm(flaw_id: str, title: str, tell: str) -> str:
+    return (
+        f"{CATCH_MARK}\n"
+        f"Nice catch. You rejected a canary ({flaw_id}: {title}).\n"
+        f"Clue: {tell}"
+    )

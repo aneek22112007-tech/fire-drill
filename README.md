@@ -32,3 +32,23 @@ flowchart TD
 
 The room bus is `LocalAdapter` (SQLite) unless you point `--adapter` at Mattermost or Switch. The executor is the only code that edits the repo, and it refuses any id that is not in the worker's HMAC registry. Canary ids are not in that registry.
 
+## Three-minute demo
+
+Record from the `fire-drill` directory:
+
+```bash
+make setup
+firedrill run-demo --offline
+firedrill report
+firedrill verify
+```
+
+Narration you can read over those commands:
+
+1. The worker posts real edits to a toy service. The canary posts twelve flawed requests in the same voice. Reviewers cannot tell them apart from the author line.
+2. Avery reads and catches the canaries she is assigned. Blake approves in a few seconds and catches none. Casey catches the obvious flaws and misses the subtle ones. The flatness flag marks very fast times and times that barely vary.
+3. `firedrill report` prints the headline from the database. The limits section says this is a method demo, not a significance claim.
+4. `firedrill verify` recomputes SHA-256 of the revealed key and salt and checks it against the commitment posted when the drill started. The command prints the hash, not the key.
+
+`firedrill replay demo/recorded_drill.jsonl` repeats that drill from the recording. A live room uses `firedrill consent <reviewer>` (the person types `/optin`) and `firedrill start` before any decisions.
+

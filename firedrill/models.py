@@ -37,3 +37,10 @@ class Decision(BaseModel):
     latency_s: float = Field(ge=0)
 
 
+class Reviewer(BaseModel):
+    id: str
+    name: str
+    profile: Literal["careful", "rushed", "average", "human"] = "human"
+    opted_in: bool = False
+
+

@@ -8,3 +8,7 @@ from firedrill.registry import RegistryError, WorkerRegistry
 from firedrill.repo_edit import apply_action
 
 
+class ExecutorRefusal(RuntimeError):
+    pass
+
+

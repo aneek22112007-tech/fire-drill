@@ -47,3 +47,16 @@ def parse_command(line: str) -> ParsedCommand | None:
     return None
 
 
+def parse_approval(body: str) -> ApprovalRequest | None:
+    match = _APPROVAL.search(body)
+    if match is None:
+        return None
+    return ApprovalRequest(
+        id=match.group(1),
+        summary=match.group("summary").strip(),
+        diff=match.group("diff") + "\n",
+        risk=match.group("risk"),  # type: ignore[arg-type]
+        complexity=int(match.group("complexity")),
+    )
+
+

@@ -22,3 +22,33 @@ SAMPLE = ROOT / "sample_repo"
 
 
 @pytest.fixture()
+def world(tmp_path, monkeypatch):
+    monkeypatch.setenv("WORKER_SECRET", "test-worker-secret")
+    repo = tmp_path / "repo"
+    shutil.copytree(SAMPLE, repo)
+    bus = LocalAdapter(tmp_path / "room.db")
+    store = AuditorStore(tmp_path / "drill.db")
+    registry = WorkerRegistry(tmp_path / "registry.db", b"test-worker-secret")
+    flaws = {flaw.id: flaw for flaw in load_library(ROOT / "canaries" / "library.yaml")}
+    key = {"version": 1, "drill_key": "k"}
+    key_bytes = (json.dumps(key) + "\n").encode()
+    session = DrillSession(
+        bus=bus,
+        store=store,
+        executor=Executor(registry, repo),
+        required=["avery", "blake", "casey"],
+        flaws=flaws,
+        key_bytes=key_bytes,
+    )
+    return {
+        "repo": repo,
+        "bus": bus,
+        "store": store,
+        "registry": registry,
+        "session": session,
+        "worker": Worker(registry, bus, repo),
+        "canary": Canary(bus, store.add_mapping),
+        "flaws": flaws,
+    }
+
+

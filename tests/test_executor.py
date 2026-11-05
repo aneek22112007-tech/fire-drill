@@ -41,3 +41,30 @@ def _pytest(repo: Path) -> subprocess.CompletedProcess[str]:
     )
 
 
+def test_approved_version_bump_and_function(tmp_path, secret):
+    repo = _copy_repo(tmp_path)
+    bus = LocalAdapter(tmp_path / "room.db")
+    registry = WorkerRegistry(tmp_path / "registry.db", secret)
+    worker = Worker(registry, bus, repo)
+    executor = Executor(registry, repo)
+
+    bump = worker.action_version_bump()
+    summary, risk, complexity = worker.describe(bump)
+    request = worker.propose(bump, summary=summary, risk=risk, complexity=complexity)
+    assert request.id.startswith("fd-")
+    assert "1.0.1" in request.diff
+    executor.execute(request.id)
+    assert read_version(repo) == "1.0.1"
+
+    added = worker.action_function(7)
+    summary, risk, complexity = worker.describe(added)
+    request = worker.propose(added, summary=summary, risk=risk, complexity=complexity)
+    executor.execute(request.id)
+    assert "def fn_07" in (repo / "src" / "samplelib" / "ops.py").read_text(encoding="utf-8")
+
+    result = _pytest(repo)
+    assert result.returncode == 0, result.stdout + result.stderr
+    bus.close()
+    registry.close()
+
+

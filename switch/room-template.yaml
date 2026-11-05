@@ -110,3 +110,7 @@ room:
         Only the auditor holds this role. It is the commitment, the reveal,
         and the private canary feedback. No other agent may assume it.
 
+kickoff: |
+  @worker @canary @auditor The Fire Drill room is open.
+  Canaries never execute. Only the auditor accesses the answer key.
+  Reviewers send /optin before the drill starts.

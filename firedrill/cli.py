@@ -47,3 +47,23 @@ def version() -> None:
 
 
 @app.command()
+def up(adapter: str = typer.Option("local", help="local, mattermost, or switch")) -> None:
+    """Check a room adapter and post one readiness line."""
+
+    if adapter == "local":
+        _up_local()
+        return
+    if adapter == "mattermost":
+        from firedrill.adapters.mattermost import probe_mattermost
+
+        _probe(probe_mattermost)
+        return
+    if adapter == "switch":
+        from firedrill.adapters.switch import probe_switch
+
+        _probe(probe_switch)
+        return
+    raise typer.BadParameter("adapter must be local, mattermost, or switch")
+
+
+@app.command()

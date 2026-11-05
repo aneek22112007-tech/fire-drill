@@ -96,3 +96,22 @@ def _snapshot(repo: Path) -> dict[str, str]:
     return files
 
 
+def diff_trees(before: Path, after: Path) -> str:
+    old = _snapshot(before)
+    new = _snapshot(after)
+    chunks: list[str] = []
+    for name in sorted(set(old) | set(new)):
+        left = old.get(name, "").splitlines(keepends=True)
+        right = new.get(name, "").splitlines(keepends=True)
+        if left and not left[-1].endswith("\n"):
+            left[-1] += "\n"
+        if right and not right[-1].endswith("\n"):
+            right[-1] += "\n"
+        text = "".join(
+            difflib.unified_diff(left, right, fromfile=f"a/{name}", tofile=f"b/{name}")
+        )
+        if text:
+            chunks.append(text)
+    return "".join(chunks)
+
+

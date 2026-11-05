@@ -53,3 +53,13 @@ def test_worker_and_canary_cannot_read_the_key(tmp_path):
     assert auditor.json()["bytes"].encode("utf-8") == key_bytes
 
 
+def test_commitment_matches_revealed_key(tmp_path):
+    _key_file, _tokens, _db, key_bytes = _write_private(tmp_path)
+    salt = "drill-salt-1"
+    digest = commitment_hash(key_bytes, salt)
+    opening = commitment_message(digest)
+    reveal = reveal_message(key_bytes, salt)
+    ok, actual = verify_reveal_text(opening + "\n" + reveal)
+    assert ok
+    assert actual == digest
+    assert f"sha256={digest}" in opening

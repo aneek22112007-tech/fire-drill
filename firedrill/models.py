@@ -56,3 +56,14 @@ class Flaw(BaseModel):
     diff: str
 
 
+class DrillConfig(BaseModel):
+    reviewers: list[Reviewer]
+    seed: int = 20261105
+    real_items: int = 50
+    batch_size: int = 3
+    flatness_cv: float = 0.25
+    flatness_min_decisions: int = 5
+    flatness_median_seconds: float = 8.0
+    offline: bool = True
+
+

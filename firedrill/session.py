@@ -43,3 +43,79 @@ class DrillSession:
         self.needs_explain: set[str] = set()
         self.explained_ready: set[str] = set()
 
+    def command(self, reviewer: str, line: str, ts: str) -> str:
+        parsed = parse_command(line)
+        if parsed is None:
+            self._say("auditor", "auditor", f"Unrecognised command from {reviewer}.", ts)
+            return "unrecognised"
+        if parsed.name == "optin":
+            self.store.record_optin(reviewer, ts)
+            self._say(reviewer, "human", "/optin", ts)
+            return "opted-in"
+        if not self.started:
+            self._say(
+                "auditor",
+                "auditor",
+                "The drill has not started. It is waiting for /optin from every reviewer.",
+                ts,
+            )
+            return "not-started"
+        if parsed.request_id is None:
+            return "unrecognised"
+        self.sync()
+        request = self._request(parsed.request_id)
+        if request is None:
+            self._say("auditor", "auditor", f"Unknown request {parsed.request_id}.", ts)
+            return "unknown"
+        if parsed.name == "explain":
+            decision = self._decision(request, reviewer, "explain", parsed.text, ts)
+            self.explained_ready.add(reviewer)
+            self.store.record_decision(decision)
+            self._say(
+                reviewer,
+                "human",
+                f"/explain {parsed.request_id} {parsed.text}",
+                ts,
+                thread_id=self._thread_for(parsed.request_id),
+            )
+            return "explained"
+        if parsed.request_id in self._closed():
+            self._say("auditor", "auditor", f"{parsed.request_id} is already decided.", ts)
+            return "duplicate"
+        if parsed.name == "approve" and reviewer in self.needs_explain and reviewer not in self.explained_ready:
+            self._say(
+                "auditor",
+                "auditor",
+                (
+                    f"{reviewer} must /explain {parsed.request_id} in one sentence "
+                    "before the next approval. Review times were flat, so explain-back is on."
+                ),
+                ts,
+            )
+            return "explain-required"
+        reason = parsed.text if parsed.name == "reject" else ""
+        decision = self._decision(request, reviewer, parsed.name, reason, ts)
+        if request["is_canary"]:
+            self._canary_feedback(reviewer, request, parsed.name, ts)
+        elif parsed.name == "approve":
+            try:
+                self.executor.execute(parsed.request_id)
+            except ExecutorRefusal as exc:
+                self._say("auditor", "auditor", str(exc), ts)
+                return "refused"
+        self.store.record_decision(decision)
+        verb = "approved" if parsed.name == "approve" else "rejected"
+        detail = f" ({reason})" if reason else ""
+        self._say(
+            reviewer,
+            "human",
+            f"{reviewer} {verb} {parsed.request_id}{detail}",
+            ts,
+            thread_id=self._thread_for(parsed.request_id),
+        )
+        if parsed.name == "approve":
+            self.explained_ready.discard(reviewer)
+            self.needs_explain.discard(reviewer)
+        self._arm_flatness(reviewer, ts)
+        return parsed.name
+

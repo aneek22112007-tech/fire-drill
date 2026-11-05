@@ -29,3 +29,43 @@ def missing_token_message(base: str) -> str:
     )
 
 
+def probe_mattermost() -> str:
+    """Confirm the server, then post one readiness line when a token is configured."""
+
+    base = os.environ.get("MM_BASE_URL", "http://127.0.0.1:8065").rstrip("/")
+    token = os.environ.get("MM_TOKEN", "").strip()
+    channel = os.environ.get("MM_CHANNEL_ID", "").strip()
+    try:
+        ping = httpx.get(f"{base}/api/v4/system/ping", timeout=5.0)
+    except httpx.HTTPError as exc:
+        raise AdapterError(
+            f"Mattermost is not reachable at {base} ({exc.__class__.__name__}). "
+            "Start it with `docker compose up -d` in the fire-drill directory. "
+            "The compose file publishes mattermost/mattermost-preview on port 8065."
+        ) from exc
+    if ping.status_code == 404:
+        raise AdapterError(
+            f"GET {base}/api/v4/system/ping returned 404. "
+            "Fire Drill does not try another probe."
+        )
+    if ping.status_code >= 400:
+        raise AdapterError(f"GET {base}/api/v4/system/ping returned {ping.status_code}.")
+    if not token or not channel:
+        raise AdapterError(missing_token_message(base))
+    me = httpx.get(
+        f"{base}/api/v4/users/me",
+        headers={"Authorization": f"Bearer {token}"},
+        timeout=10.0,
+    )
+    if me.status_code == 401:
+        raise AdapterError("Mattermost rejected MM_TOKEN (401 from /api/v4/users/me).")
+    if me.status_code >= 400:
+        raise AdapterError(f"GET /api/v4/users/me returned {me.status_code}.")
+    payload: dict[str, Any] = me.json() if me.headers.get("content-type", "").startswith("application/json") else {}
+    user_id = str(payload.get("id", ""))
+    username = str(payload.get("username") or "the token user")
+    adapter = MattermostAdapter(base, token, channel, user_id)
+    adapter.post_message(channel, "Fire Drill Mattermost adapter is up.", root_id=None)
+    return f"mattermost ready at {base} as {username}"
+
+

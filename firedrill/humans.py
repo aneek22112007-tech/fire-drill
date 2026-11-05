@@ -13,3 +13,13 @@ REVIEWERS = (
 )
 
 
+def latency_seconds(profile: str, complexity: int) -> float:
+    if profile == "rushed":
+        return 2.5 + (complexity % 5) * 0.6
+    if profile == "careful":
+        return 22.0 + complexity * 3.0
+    if profile == "average":
+        return 10.0 + complexity * 1.5
+    raise ValueError(f"unknown profile {profile}")
+
+

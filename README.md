@@ -82,3 +82,6 @@ The twelve canaries are tagged with MAST modes from that taxonomy, including dis
 
 The offline demo is 50 real edits and 12 canaries, decided by three simulated reviewers. That is enough to show the measurement. It is a small sample; it demonstrates the method, not statistical significance. Catch rate, median times, and the flatness flag are computed from the run. The headline in the report is that computation, not a number baked into the program.
 
+## License
+
+MIT. See [LICENSE](LICENSE).

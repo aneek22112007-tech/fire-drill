@@ -432,3 +432,16 @@ def _decide(
     return add_seconds(clock, 0.05)
 
 
+def _reset(paths: DrillPaths) -> None:
+    paths.ensure()
+    for db in (paths.room_db, paths.registry_db, paths.drill_db):
+        _unlink_db(db)
+    if paths.work_repo.exists():
+        shutil.rmtree(paths.work_repo)
+    shutil.copytree(
+        paths.sample_repo,
+        paths.work_repo,
+        ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+    )
+
+

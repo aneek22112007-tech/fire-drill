@@ -120,3 +120,19 @@ def run_demo(offline: bool = typer.Option(False, "--offline", help="Use template
 
 
 @app.command()
+def replay(
+    recording: Path | None = typer.Argument(None, help="JSONL recording. Defaults to demo/recorded_drill.jsonl."),
+) -> None:
+    """Replay a recording and write the same report."""
+
+    paths = default_paths()
+    source = recording or paths.recorded
+    if not source.is_file():
+        console.print(f"no recording at {source}")
+        raise typer.Exit(code=1)
+    headline = replay_recording(paths, source)
+    console.print(headline)
+    console.print(f"wrote {paths.report}")
+
+
+@app.command()

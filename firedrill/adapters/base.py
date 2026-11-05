@@ -7,3 +7,7 @@ from typing import Protocol
 from firedrill.models import RoomMessage
 
 
+class AdapterError(RuntimeError):
+    """A remote adapter refused to guess a call it could not verify."""
+
+

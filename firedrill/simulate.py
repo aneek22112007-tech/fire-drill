@@ -37,14 +37,16 @@ from firedrill.agents.worker import describe_action
 from firedrill.bus import voiced
 from firedrill.executor import Executor
 from firedrill.humans import REVIEWERS, latency_seconds, review
+from firedrill.ingest import MappingClient
 from firedrill.llm import LLM
 from firedrill.models import Action
 from firedrill.paths import DrillPaths
 from firedrill.registry import WorkerRegistry
 from firedrill.repo_edit import bump_patch, read_version
 from firedrill.report import write_report
+from firedrill.service import running_auditor
 from firedrill.session import DrillSession
-from firedrill.store import AuditorStore
+from firedrill.store import AuditorStore, load_tokens
 from firedrill.timeutil import add_seconds, parse_ts, seconds_between
 
 SEED = 20261106
@@ -288,25 +290,28 @@ def play(
     key_bytes = base64.b64decode(str(meta["key_b64"]), validate=True)
     secret = os.environ.get("WORKER_SECRET", "").strip() or "firedrill-demo-worker-secret"
     _reset(paths)
-    created: LocalAdapter | None = None
-    if bus is None:
-        created = LocalAdapter(paths.room_db)
-        bus = created
-    store = AuditorStore(paths.drill_db)
-    registry = WorkerRegistry(paths.registry_db, secret.encode("utf-8"))
-    flaws = {flaw.id: flaw for flaw in load_library(paths.library)}
-    session = DrillSession(
-        bus=bus,
-        store=store,
-        executor=Executor(registry, paths.work_repo),
-        required=[row["id"] for row in REVIEWERS],
-        flaws=flaws,
-        key_bytes=key_bytes,
-    )
-    auditor = Auditor(session)
-    worker = Worker(registry, bus, paths.work_repo)
-    canary = Canary(bus, auditor.ingest)
+    server = running_auditor(paths)
+    base = server.__enter__()
     try:
+        submit = MappingClient(base, load_tokens(paths.tokens_file)["canary_ingest_token"]).submit
+        created: LocalAdapter | None = None
+        if bus is None:
+            created = LocalAdapter(paths.room_db)
+            bus = created
+        store = AuditorStore(paths.drill_db)
+        registry = WorkerRegistry(paths.registry_db, secret.encode("utf-8"))
+        flaws = {flaw.id: flaw for flaw in load_library(paths.library)}
+        session = DrillSession(
+            bus=bus,
+            store=store,
+            executor=Executor(registry, paths.work_repo),
+            required=[row["id"] for row in REVIEWERS],
+            flaws=flaws,
+            key_bytes=key_bytes,
+        )
+        auditor = Auditor(session)
+        worker = Worker(registry, bus, paths.work_repo)
+        canary = Canary(bus, submit)
         for index, event in enumerate(events):
             kind = str(event["kind"])
             if kind == "meta":
@@ -356,10 +361,15 @@ def play(
         _sample_tests(paths.work_repo)
         return write_report(store, paths.report)
     finally:
-        registry.close()
-        store.close()
-        if created is not None:
-            created.close()
+        try:
+            if "registry" in locals():
+                registry.close()
+            if "store" in locals():
+                store.close()
+            if "created" in locals() and created is not None:
+                created.close()
+        finally:
+            server.__exit__(*sys.exc_info())
 
 
 def _speak(bus: RoomBus, auditor: Auditor, reviewer: str, line: str, ts: str) -> str:

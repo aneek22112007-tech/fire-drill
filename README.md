@@ -54,9 +54,9 @@ Narration you can read over those commands:
 
 ## Answer-key threat model
 
-The answer key is the map from request id to flaw, plus the bytes in `auditor_private/key.json`. That directory is mode 0700 and is not in git. `make setup-auditor` tries to create an OS user named `firedrill-auditor` with non-interactive `sudo`. On this Mac that needs an administrator password, so when sudo refuses, isolation is the token gate instead.
+The answer key is the map from request id to flaw, plus the bytes in `auditor_private/key.json`. That directory is mode 0700 and is not in git. `make setup-auditor` writes `AUDITOR_TOKEN` and `CANARY_INGEST_TOKEN` into `auditor_private/tokens.json` (mode 0600). On Linux it runs `sudo useradd --system firedrill-auditor`, then `chown` and `chmod 700` on that directory, when non-interactive sudo works. On macOS it keeps `sysadminctl`. When the user cannot be created, the script prints a warning and falls back to token-only isolation.
 
-The auditor service binds to `127.0.0.1`. `AUDITOR_TOKEN` can read the key, the mappings, and `/dashboard`. `CANARY_INGEST_TOKEN` can only `POST /mappings`. The worker and the canary receive 401 on the key. The canary process is not given `WORKER_SECRET`, and `executor.py` will not apply an id the worker did not sign.
+`firedrill serve` starts the token-gated FastAPI service with uvicorn on `127.0.0.1`. `firedrill run-demo` and `firedrill start` launch that service as a subprocess and stop it when the drill finishes. The canary sends `{request_id, flaw_id}` only by `POST /mappings` with `CANARY_INGEST_TOKEN`. That token cannot read the key or the mappings. `AUDITOR_TOKEN` can read the key, the mappings, and `/dashboard`. The worker and the canary receive 401 on the key. The canary process is not given `WORKER_SECRET`, and `executor.py` will not apply an id the worker did not sign.
 
 At the start the auditor posts `SHA-256(key.json bytes + newline + salt)`. At the end it posts the key and the salt so anyone can recompute the hash. A miss is a private DM (`PRIVATE CANARY RESULT`) to the reviewer who approved the canary. That text is not written to the room log. A correct rejection gets a private "nice catch" and still does not execute.
 

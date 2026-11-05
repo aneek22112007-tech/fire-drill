@@ -15,8 +15,15 @@ class AuditorStore:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
-        self._conn = sqlite3.connect(self.db_path, check_same_thread=False)
+        # Autocommit: the auditor service is a second process, and a read
+        # transaction would hide the mappings it just committed.
+        self._conn = sqlite3.connect(
+            self.db_path,
+            check_same_thread=False,
+            isolation_level=None,
+        )
         self._conn.row_factory = sqlite3.Row
+        self._conn.execute("PRAGMA busy_timeout=5000")
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.executescript(
             """

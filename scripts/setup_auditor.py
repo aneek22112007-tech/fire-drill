@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import platform
 import secrets
 import stat
 import subprocess
@@ -21,7 +22,50 @@ AUDITOR_DIR = ROOT / "auditor_private"
 USER_NAME = "firedrill-auditor"
 
 
-def _try_create_user() -> str:
+def creation_argv(system: str) -> list[str] | None:
+    """The OS command that creates firedrill-auditor, or None when this OS has none."""
+
+    if system == "Linux":
+        return ["sudo", "-n", "useradd", "--system", USER_NAME]
+    if system == "Darwin":
+        return ["sudo", "-n", "sysadminctl", "-addUser", USER_NAME, "-shell", "/usr/bin/false"]
+    return None
+
+
+def user_setup_warning(system: str) -> str:
+    if system == "Linux":
+        return (
+            "warning: sudo useradd --system firedrill-auditor failed. "
+            "Falling back to token-only isolation."
+        )
+    if system == "Darwin":
+        return (
+            "warning: sysadminctl could not create firedrill-auditor without an administrator password. "
+            "Falling back to token-only isolation."
+        )
+    return (
+        f"warning: {system} has no firedrill-auditor user setup. "
+        "Falling back to token-only isolation."
+    )
+
+
+def _chown(system: str) -> None:
+    if system == "Linux":
+        owner = f"{USER_NAME}:{USER_NAME}"
+    elif system == "Darwin":
+        owner = f"{USER_NAME}:staff"
+    else:
+        return
+    subprocess.run(
+        ["sudo", "-n", "chown", "-R", owner, str(AUDITOR_DIR)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    os.chmod(AUDITOR_DIR, 0o700)
+
+
+def _try_create_user(system: str) -> str:
     probe = subprocess.run(
         ["id", USER_NAME],
         check=False,
@@ -30,14 +74,14 @@ def _try_create_user() -> str:
     )
     if probe.returncode == 0:
         return "present"
-    created = subprocess.run(
-        ["sudo", "-n", "sysadminctl", "-addUser", USER_NAME, "-shell", "/usr/bin/false"],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    argv = creation_argv(system)
+    if argv is None:
+        print(user_setup_warning(system), file=sys.stderr)
+        return "unavailable"
+    created = subprocess.run(argv, check=False, capture_output=True, text=True)
     if created.returncode == 0:
         return "created"
+    print(user_setup_warning(system), file=sys.stderr)
     return "unavailable"
 
 
@@ -67,12 +111,8 @@ def _write_tokens(path: Path) -> None:
 def main() -> int:
     AUDITOR_DIR.mkdir(parents=True, exist_ok=True)
     os.chmod(AUDITOR_DIR, 0o700)
-    user_state = _try_create_user()
-    if user_state == "created":
-        subprocess.run(
-            ["sudo", "-n", "chown", "-R", f"{USER_NAME}:staff", str(AUDITOR_DIR)],
-            check=False,
-        )
+    system = platform.system()
+    user_state = _try_create_user(system)
     _write_key(AUDITOR_DIR / "key.json")
     _write_tokens(AUDITOR_DIR / "tokens.json")
     note = AUDITOR_DIR / "README.txt"
@@ -84,6 +124,8 @@ def main() -> int:
         encoding="utf-8",
     )
     os.chmod(note, 0o600)
+    if user_state in {"created", "present"}:
+        _chown(system)
     mode = stat.S_IMODE(AUDITOR_DIR.stat().st_mode)
     print(f"auditor_private mode {mode:o}; firedrill-auditor: {user_state}")
     return 0

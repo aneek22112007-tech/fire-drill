@@ -1,7 +1,7 @@
 """Canary agent. Posts a normal-looking request and forwards the flaw id once.
 
-The agent does not keep the request-to-flaw map. The callable it is given is
-the auditor ingest, which is the only place the map is stored.
+The agent does not keep the request-to-flaw map. On the drill path the callable
+POSTs {request_id, flaw_id} to the auditor service with the ingest token.
 """
 
 from __future__ import annotations

@@ -240,7 +240,6 @@ class DrillSession:
             flaw = self.flaws.get(flaw_id)
             if flaw is None:
                 continue
-            self.store.add_mapping(request_id, flaw_id)
             self.store.set_mast(request_id, flaw.mast_mode)
 
     def _canary_feedback(self, reviewer: str, request: dict[str, object], action: str, ts: str) -> None:

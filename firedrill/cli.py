@@ -21,6 +21,7 @@ from firedrill.humans import REVIEWERS
 from firedrill.paths import DrillPaths, default_paths
 from firedrill.registry import WorkerRegistry
 from firedrill.report import write_report
+from firedrill.service import BIND_HOST, app_from_env
 from firedrill.session import ConsentError, DrillSession
 from firedrill.simulate import build_events
 from firedrill.simulate import play as play_events
@@ -143,6 +144,24 @@ def start(
         store.close()
     console.print(f"drill started sha256={digest}")
     console.print(headline)
+
+
+@app.command()
+def serve(port: int = typer.Option(8765, "--port", help="Port on 127.0.0.1.")) -> None:
+    """Start the token-gated auditor service on 127.0.0.1.
+
+    AUDITOR_TOKEN reads the key, the mappings, and /dashboard.
+    CANARY_INGEST_TOKEN can only POST /mappings. Run make setup first.
+    """
+
+    paths = default_paths()
+    paths.ensure()
+    if not paths.key_file.is_file() or not paths.tokens_file.is_file():
+        raise typer.BadParameter("auditor_private/key.json or tokens.json is missing. Run make setup.")
+    import uvicorn
+
+    os.environ["FIREDRILL_ROOT"] = str(paths.root)
+    uvicorn.run(app_from_env, host=BIND_HOST, port=port, factory=True, log_level="info")
 
 
 @app.command("run-demo")

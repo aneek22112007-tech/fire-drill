@@ -24,8 +24,3 @@ class Auditor:
         """Apply /approve, /reject, /explain, and /optin lines read from the room bus."""
 
         return self._session.ingest_commands()
-
-    def ingest(self, request_id: str, flaw_id: str) -> None:
-        """Store a canary mapping. The canary calls this and keeps no copy."""
-
-        self._session.store.add_mapping(request_id, flaw_id)

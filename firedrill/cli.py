@@ -136,3 +136,18 @@ def replay(
 
 
 @app.command()
+def report() -> None:
+    """Print the headline and write report.md from the auditor database."""
+
+    paths = default_paths()
+    paths.ensure()
+    store = AuditorStore(paths.drill_db)
+    try:
+        headline = write_report(store, paths.report)
+    finally:
+        store.close()
+    console.print(headline)
+    console.print(f"wrote {paths.report}")
+
+
+@app.command()

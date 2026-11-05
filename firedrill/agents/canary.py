@@ -1,0 +1,19 @@
+"""Canary agent. Posts a normal-looking request and forwards the flaw id once.
+
+The agent does not keep the request-to-flaw map. The callable it is given is
+the auditor ingest, which is the only place the map is stored.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from pathlib import Path
+
+import yaml
+
+from firedrill.adapters.local import LocalAdapter
+from firedrill.agents.worker import new_request_id
+from firedrill.bus import CHANGE_AGENT, CHANGE_ROLE, format_approval
+from firedrill.models import ApprovalRequest, Flaw
+
+

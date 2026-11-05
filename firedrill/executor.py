@@ -17,3 +17,10 @@ class Executor:
         self.registry = registry
         self.repo = Path(repo)
 
+    def execute(self, request_id: str) -> str:
+        try:
+            action = self.registry.verify(request_id)
+        except RegistryError as exc:
+            raise ExecutorRefusal(str(exc)) from exc
+        apply_action(self.repo, action)
+        return f"applied {request_id} {action.kind}"

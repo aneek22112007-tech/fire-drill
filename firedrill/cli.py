@@ -227,3 +227,7 @@ class _Live:
     def __enter__(self) -> tuple[Auditor, AuditorStore, list[object]]:
         return self.auditor, self.store, [self.registry, self.store, self.bus]
 
+    def __exit__(self, exc_type, exc, tb) -> None:  # type: ignore[no-untyped-def]
+        return None
+
+

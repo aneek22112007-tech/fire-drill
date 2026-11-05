@@ -55,3 +55,15 @@ _EXPLAIN = "I read the diff and it matches the summary."
 
 
 @dataclass
+class Item:
+    request_id: str
+    is_canary: bool
+    risk: str
+    complexity: int
+    public_summary: str
+    diff: str
+    change: str
+    action: dict[str, object] | None
+    flaw_id: str | None
+
+

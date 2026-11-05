@@ -67,3 +67,43 @@ def find_operation(payload: object, name: str) -> object | None:
     return None
 
 
+def probe_switch() -> str:
+    base = os.environ.get("SWITCH_BASE_URL", "").strip().rstrip("/")
+    token = os.environ.get("SWITCH_API_TOKEN", "").strip()
+    agent_id = os.environ.get("SWITCH_AGENT_ID", "").strip()
+    room_id = os.environ.get("SWITCH_ROOM_ID", "").strip()
+    if not base:
+        raise AdapterError(
+            "SWITCH_BASE_URL is empty. Point it at a Switch server, set "
+            "SWITCH_AGENT_ID, SWITCH_API_TOKEN, and SWITCH_ROOM_ID, then run "
+            "`firedrill up --adapter switch`. The local adapter remains the default."
+        )
+    try:
+        health = httpx.get(f"{base}/health", timeout=5.0)
+    except httpx.HTTPError as exc:
+        raise AdapterError(
+            f"Switch is not reachable at {base} ({exc.__class__.__name__}). "
+            "GET /health failed, so Fire Drill will not pretend the room is connected."
+        ) from exc
+    if health.status_code >= 400:
+        raise AdapterError(f"GET {base}/health returned {health.status_code}.")
+    missing = [
+        name
+        for name, value in (
+            ("SWITCH_API_TOKEN", token),
+            ("SWITCH_AGENT_ID", agent_id),
+            ("SWITCH_ROOM_ID", room_id),
+        )
+        if not value
+    ]
+    if missing:
+        raise AdapterError(
+            "Switch /health succeeded. Still missing " + ", ".join(missing) + ". "
+            "Fire Drill does not invent agent or room ids."
+        )
+    connection = os.environ.get("SWITCH_CONNECTION_ID", "").strip() or None
+    adapter = SwitchAdapter(base, agent_id, token, room_id, connection)
+    adapter.post_room("Fire Drill Switch adapter is up.")
+    return f"switch ready at {base} room {room_id}"
+
+

@@ -150,3 +150,21 @@ def test_run_demo_and_replay_write_the_same_report(tmp_path):
     assert f"COMMITMENT sha256={detail}" in room
 
 
+def test_cli_refuses_to_start_without_consent(tmp_path, monkeypatch):
+    monkeypatch.setenv("FIREDRILL_ROOT", str(tmp_path))
+    monkeypatch.setenv("WORKER_SECRET", "test-worker-secret")
+    private = tmp_path / "auditor_private"
+    private.mkdir()
+    (private / "key.json").write_text('{"version": 1, "drill_key": "demo"}\n', encoding="utf-8")
+    refused = runner.invoke(app, ["start"])
+    assert refused.exit_code == 1
+    assert "/optin" in refused.output
+    for reviewer in ("avery", "blake", "casey"):
+        opted = runner.invoke(app, ["consent", reviewer, "--line", "/optin"])
+        assert opted.exit_code == 0, opted.output
+    started = runner.invoke(app, ["start"])
+    assert started.exit_code == 0, started.output
+    assert "sha256=" in started.output
+    assert "demo" not in started.output
+
+

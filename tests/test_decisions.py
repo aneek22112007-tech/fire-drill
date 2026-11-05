@@ -52,3 +52,7 @@ def world(tmp_path, monkeypatch):
     }
 
 
+def _room_text(bus: LocalAdapter) -> str:
+    return "\n".join(message.body for message in bus.read_room())
+
+

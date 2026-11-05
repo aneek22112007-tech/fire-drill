@@ -51,3 +51,12 @@ def test_careful_catches_every_flaw_and_approves_a_real_bump():
     assert latency_seconds("rushed", complexity) < 8
 
 
+def test_offline_llm_does_not_call_the_network(monkeypatch):
+    def explode(*_args, **_kwargs):
+        raise AssertionError("offline mode called the network")
+
+    monkeypatch.setattr("firedrill.llm.httpx.post", explode)
+    monkeypatch.setenv("XAI_API_KEY", "present-but-must-not-be-sent")
+    assert LLM(offline=True).complete("system", "  Keep this sentence.  ") == "Keep this sentence."
+
+

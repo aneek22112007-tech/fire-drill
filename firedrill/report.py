@@ -15,3 +15,11 @@ LIMITS = (
 )
 
 
+def fmt_seconds(value: float | None) -> str:
+    if value is None:
+        return "n/a"
+    if abs(value - round(value)) < 1e-9:
+        return str(int(round(value)))
+    return f"{value:.1f}"
+
+

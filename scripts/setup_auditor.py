@@ -21,3 +21,23 @@ AUDITOR_DIR = ROOT / "auditor_private"
 USER_NAME = "firedrill-auditor"
 
 
+def _try_create_user() -> str:
+    probe = subprocess.run(
+        ["id", USER_NAME],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if probe.returncode == 0:
+        return "present"
+    created = subprocess.run(
+        ["sudo", "-n", "sysadminctl", "-addUser", USER_NAME, "-shell", "/usr/bin/false"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if created.returncode == 0:
+        return "created"
+    return "unavailable"
+
+

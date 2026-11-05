@@ -50,3 +50,14 @@ class WorkerRegistry:
     def close(self) -> None:
         self._conn.close()
 
+    def register(self, request_id: str, action: Action) -> str:
+        signature = sign_request(self._secret, request_id)
+        payload = action.model_dump_json()
+        with self._lock:
+            self._conn.execute(
+                "INSERT INTO registry (request_id, signature, action_json) VALUES (?, ?, ?)",
+                (request_id, signature, payload),
+            )
+            self._conn.commit()
+        return signature
+

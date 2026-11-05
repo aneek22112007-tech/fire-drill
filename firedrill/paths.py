@@ -62,3 +62,10 @@ class DrillPaths:
         return self.root / "report.md"
 
     @property
+    def library(self) -> Path:
+        bundled = self.root / "canaries" / "library.yaml"
+        if bundled.exists():
+            return bundled
+        return repo_root() / "canaries" / "library.yaml"
+
+    @property

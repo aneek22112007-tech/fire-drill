@@ -199,3 +199,4 @@ def _probe(func) -> None:  # type: ignore[no-untyped-def]
         raise typer.Exit(code=1) from exc
 
 
+class _Live:

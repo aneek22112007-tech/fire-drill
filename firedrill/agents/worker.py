@@ -59,3 +59,6 @@ class Worker:
     def action_config(self, key: str, value: str | int | bool) -> Action:
         return Action(kind="config_set", key=key, value=value)
 
+    def action_function(self, index: int) -> Action:
+        return make_function(index)
+

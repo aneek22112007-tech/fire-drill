@@ -40,3 +40,10 @@ def main() -> None:
 
 
 @app.command()
+def version() -> None:
+    """Print the package version."""
+
+    console.print(__version__)
+
+
+@app.command()

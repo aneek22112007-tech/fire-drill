@@ -124,3 +124,9 @@ class SwitchAdapter:
         self._sent: list[RoomMessage] = []
         self._ops: object | None = None
 
+    def _headers(self) -> dict[str, str]:
+        headers = {"Authorization": f"Bearer {self.token}"}
+        if self.connection_id:
+            headers["X-Switch-Connection-Id"] = self.connection_id
+        return headers
+

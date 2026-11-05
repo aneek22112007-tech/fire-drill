@@ -61,3 +61,11 @@ class WorkerRegistry:
             self._conn.commit()
         return signature
 
+    def contains(self, request_id: str) -> bool:
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT 1 FROM registry WHERE request_id = ?",
+                (request_id,),
+            ).fetchone()
+        return row is not None
+

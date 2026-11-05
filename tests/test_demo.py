@@ -102,3 +102,16 @@ def test_room_template_matches_the_switch_language():
     assert "canaries never execute" in document["kickoff"].lower()
 
 
+def test_seed_events_are_deterministic(tmp_path):
+    paths = DrillPaths(root=ROOT)
+    first = build_events(paths, offline=True, seed=SEED)
+    second = build_events(paths, offline=True, seed=SEED)
+    assert first == second
+    assert sum(1 for event in first if event["kind"] == "real") == 50
+    assert sum(1 for event in first if event["kind"] == "canary") == 12
+    target = tmp_path / "recorded.jsonl"
+    write_events(target, first)
+    assert read_events(target) == first
+    assert read_events(ROOT / "demo" / "recorded_drill.jsonl") == first
+
+

@@ -17,3 +17,10 @@ class RegistryError(RuntimeError):
     pass
 
 
+def load_worker_secret() -> bytes:
+    secret = os.environ.get("WORKER_SECRET", "")
+    if not secret:
+        raise RegistryError("WORKER_SECRET is not set")
+    return secret.encode("utf-8")
+
+

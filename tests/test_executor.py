@@ -68,3 +68,19 @@ def test_approved_version_bump_and_function(tmp_path, secret):
     registry.close()
 
 
+def test_rejected_request_leaves_repo_untouched(tmp_path, secret):
+    repo = _copy_repo(tmp_path)
+    before = (repo / "config.yaml").read_text(encoding="utf-8")
+    bus = LocalAdapter(tmp_path / "room.db")
+    registry = WorkerRegistry(tmp_path / "registry.db", secret)
+    worker = Worker(registry, bus, repo)
+    action = worker.action_config("feature_01", True)
+    summary, risk, complexity = worker.describe(action)
+    request = worker.propose(action, summary=summary, risk=risk, complexity=complexity)
+    # A rejection never calls the executor.
+    assert "feature_01" in request.diff
+    assert (repo / "config.yaml").read_text(encoding="utf-8") == before
+    bus.close()
+    registry.close()
+
+

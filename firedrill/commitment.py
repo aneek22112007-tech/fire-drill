@@ -7,3 +7,7 @@ import hashlib
 import re
 
 
+def commitment_hash(key_bytes: bytes, salt: str) -> str:
+    return hashlib.sha256(key_bytes + b"\n" + salt.encode("utf-8")).hexdigest()
+
+

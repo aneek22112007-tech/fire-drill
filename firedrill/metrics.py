@@ -68,3 +68,11 @@ class DrillMetrics:
     flat_reviewers: list[str] = field(default_factory=list)
 
 
+def _closing(decisions: list[Decision]) -> dict[str, Decision]:
+    closed: dict[str, Decision] = {}
+    for decision in decisions:
+        if decision.action in {"approve", "reject"} and decision.request_id not in closed:
+            closed[decision.request_id] = decision
+    return closed
+
+

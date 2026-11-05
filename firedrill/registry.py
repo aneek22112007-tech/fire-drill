@@ -80,3 +80,12 @@ class WorkerRegistry:
         action = Action.model_validate(json.loads(row["action_json"]))
         return row["signature"], action
 
+    def verify(self, request_id: str) -> Action:
+        found = self.get(request_id)
+        if found is None:
+            raise RegistryError(f"refused {request_id}: not in the worker registry")
+        signature, action = found
+        expected = sign_request(self._secret, request_id)
+        if not hmac.compare_digest(signature, expected):
+            raise RegistryError(f"refused {request_id}: signature does not match")
+        return action

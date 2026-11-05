@@ -209,3 +209,7 @@ class SwitchAdapter:
         self._sent.append(message)
         return message
 
+    def read_room(self) -> list[RoomMessage]:
+        self.call_operation("read_context", {"room_id": self.room_id})
+        return [message for message in self._sent if message.channel == "room"]
+

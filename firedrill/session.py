@@ -269,3 +269,21 @@ class DrillSession:
                 return message.body
         return None
 
+    def _say(
+        self,
+        author: str,
+        role: str,
+        body: str,
+        ts: str,
+        *,
+        thread_id: str | None = None,
+        channel: str = "room",
+    ) -> None:
+        self.bus.post(
+            author=author,
+            role=role,
+            body=body,
+            thread_id=thread_id,
+            channel=channel,
+            ts=ts,
+        )

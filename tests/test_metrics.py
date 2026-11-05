@@ -34,3 +34,14 @@ def _request(request_id: str, *, canary: bool, complexity: int, mast: str | None
     }
 
 
+def _decision(request_id: str, reviewer: str, action: str, latency: float) -> Decision:
+    return Decision(
+        request_id=request_id,
+        reviewer=reviewer,
+        action=action,  # type: ignore[arg-type]
+        reason="",
+        timestamp="2026-11-05T15:00:10.000Z",
+        latency_s=latency,
+    )
+
+

@@ -26,6 +26,7 @@ from firedrill.adapt import (
     route_high_risk,
     take_low_risk_batch,
 )
+from firedrill.adapters.base import RoomBus
 from firedrill.adapters.local import LocalAdapter
 from firedrill.agents.auditor import Auditor
 from firedrill.agents.canary import Canary, load_library
@@ -265,12 +266,19 @@ def replay(paths: DrillPaths, recording: Path) -> str:
     return play(paths, read_events(recording))
 
 
-def play(paths: DrillPaths, events: list[dict[str, object]]) -> str:
+def play(
+    paths: DrillPaths,
+    events: list[dict[str, object]],
+    bus: RoomBus | None = None,
+) -> str:
     meta = next(event for event in events if event.get("kind") == "meta")
     key_bytes = base64.b64decode(str(meta["key_b64"]), validate=True)
     secret = os.environ.get("WORKER_SECRET", "").strip() or "firedrill-demo-worker-secret"
     _reset(paths)
-    bus = LocalAdapter(paths.room_db)
+    created: LocalAdapter | None = None
+    if bus is None:
+        created = LocalAdapter(paths.room_db)
+        bus = created
     store = AuditorStore(paths.drill_db)
     registry = WorkerRegistry(paths.registry_db, secret.encode("utf-8"))
     flaws = {flaw.id: flaw for flaw in load_library(paths.library)}
@@ -291,7 +299,7 @@ def play(paths: DrillPaths, events: list[dict[str, object]]) -> str:
             if kind == "meta":
                 continue
             if kind == "optin":
-                result = auditor.command(str(event["reviewer"]), "/optin", str(event["ts"]))
+                result = _speak(bus, auditor, str(event["reviewer"]), "/optin", str(event["ts"]))
                 if result != "opted-in":
                     raise RuntimeError(f"event {index}: optin returned {result}")
                 continue
@@ -321,7 +329,7 @@ def play(paths: DrillPaths, events: list[dict[str, object]]) -> str:
                 canary.post_flaw(flaws[str(event["flaw_id"])], request_id=str(event["id"]), ts=str(event["ts"]))
                 continue
             if kind == "command":
-                result = auditor.command(str(event["reviewer"]), str(event["line"]), str(event["ts"]))
+                result = _speak(bus, auditor, str(event["reviewer"]), str(event["line"]), str(event["ts"]))
                 expected = str(event["expect"])
                 if result != expected:
                     raise RuntimeError(
@@ -337,7 +345,18 @@ def play(paths: DrillPaths, events: list[dict[str, object]]) -> str:
     finally:
         registry.close()
         store.close()
-        bus.close()
+        if created is not None:
+            created.close()
+
+
+def _speak(bus: RoomBus, auditor: Auditor, reviewer: str, line: str, ts: str) -> str:
+    """Post a reviewer line, then read /approve /reject /explain /optin back off the bus."""
+
+    bus.post(author=reviewer, role="human", body=line, channel="room", ts=ts)
+    results = auditor.ingest_commands()
+    if not results:
+        raise RuntimeError(f"room did not return a command for {reviewer}: {line}")
+    return results[-1]
 
 
 def _real_action(

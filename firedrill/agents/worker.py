@@ -6,7 +6,7 @@ import random
 import secrets
 from pathlib import Path
 
-from firedrill.adapters.local import LocalAdapter
+from firedrill.adapters.base import RoomBus
 from firedrill.bus import CHANGE_AGENT, CHANGE_ROLE, format_approval, voiced
 from firedrill.models import Action, ApprovalRequest, Risk
 from firedrill.registry import WorkerRegistry
@@ -20,7 +20,7 @@ def new_request_id(rng: random.Random | None = None) -> str:
 
 
 class Worker:
-    def __init__(self, registry: WorkerRegistry, bus: LocalAdapter, repo: Path) -> None:
+    def __init__(self, registry: WorkerRegistry, bus: RoomBus, repo: Path) -> None:
         self.registry = registry
         self.bus = bus
         self.repo = Path(repo)

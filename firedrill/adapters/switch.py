@@ -1,25 +1,35 @@
-"""Switch adapter. Calls that are not in the published agent protocol are refused.
+"""Switch adapter. Only calls confirmed in the published agent protocol are used.
 
-Verified:
+Confirmed at https://docs.switchagents.ai/switch-rooms/internals/agent-protocol
+and the operation signatures in switch_core (read_context, post_message,
+send_targeted_message):
 - GET /health
 - POST /agents/{agent_id}/message with JSON {room_id, content}
 - GET /agents/{agent_id}/ops
 - POST /agents/{agent_id}/ops/{operation} with Authorization: Bearer
   and an optional X-Switch-Connection-Id
+- read_context(limit, since, before, room_id), and only with names the live
+  schema lists
 
-Operation arguments are sent only when the ops schema lists them.
-Argument names are not hardcoded for send_targeted_message or read_context.
+send_targeted_message is in the catalog, but other participants still see it
+in the room. There is no private DM and no reaction operation. Those raise
+NotSupported and name the missing call. No Switch CLI is installed here
+(`/usr/bin/kswitch` is Kerberos), so none of this has been run against a
+live server.
 """
 
 from __future__ import annotations
 
 import os
+from collections import Counter
+from datetime import datetime, timezone
 from typing import Any
 
 import httpx
 
-from firedrill.adapters.base import AdapterError
+from firedrill.adapters.base import AdapterError, NotSupported, assign_stable_seq
 from firedrill.models import RoomMessage
+from firedrill.timeutil import format_ts
 
 
 def property_names(node: object) -> set[str] | None:
@@ -67,7 +77,66 @@ def find_operation(payload: object, name: str) -> object | None:
     return None
 
 
-def probe_switch() -> str:
+def messages_from_context(payload: object) -> list[RoomMessage]:
+    """Parse read_context's documented {threads: [{root, replies}]} timeline."""
+
+    if not isinstance(payload, dict):
+        raise NotSupported(
+            "read_context did not return an object. "
+            "Missing: the documented shape {threads: [{root, replies}]}."
+        )
+    data = payload
+    if "threads" not in data and isinstance(data.get("result"), dict):
+        data = data["result"]
+    threads = data.get("threads") if isinstance(data, dict) else None
+    if not isinstance(threads, list):
+        raise NotSupported(
+            "read_context did not return threads. "
+            "Missing: the documented timeline shape {threads: [{root, replies}]}."
+        )
+    entries: list[dict[str, Any]] = []
+    for thread in threads:
+        if not isinstance(thread, dict):
+            continue
+        root = thread.get("root")
+        if isinstance(root, dict):
+            entries.append(root)
+        replies = thread.get("replies")
+        if isinstance(replies, list):
+            entries.extend(item for item in replies if isinstance(item, dict))
+
+    def _key(entry: dict[str, Any]) -> tuple[int, str]:
+        stamp = entry.get("timestamp")
+        return (stamp if isinstance(stamp, int) else 0, str(entry.get("id") or ""))
+
+    messages: list[RoomMessage] = []
+    for index, entry in enumerate(sorted(entries, key=_key)):
+        if entry.get("kind") not in (None, "message"):
+            continue
+        body = entry.get("body")
+        if not isinstance(body, str):
+            continue
+        stamp = entry.get("timestamp")
+        if isinstance(stamp, int):
+            ts = format_ts(datetime.fromtimestamp(stamp / 1000.0, timezone.utc))
+        else:
+            ts = ""
+        messages.append(
+            RoomMessage(
+                seq=index + 1,
+                id=str(entry.get("id") or f"switch-ctx-{index}"),
+                ts=ts,
+                author=str(entry.get("sender_name") or entry.get("sender") or ""),
+                role="human",
+                thread_id=None,
+                body=body,
+                channel="room",
+            )
+        )
+    return messages
+
+
+def _switch_target() -> tuple[str, str, str, str, str | None]:
     base = os.environ.get("SWITCH_BASE_URL", "").strip().rstrip("/")
     token = os.environ.get("SWITCH_API_TOKEN", "").strip()
     agent_id = os.environ.get("SWITCH_AGENT_ID", "").strip()
@@ -102,9 +171,20 @@ def probe_switch() -> str:
             "Fire Drill does not invent agent or room ids."
         )
     connection = os.environ.get("SWITCH_CONNECTION_ID", "").strip() or None
-    adapter = SwitchAdapter(base, agent_id, token, room_id, connection)
+    return base, token, agent_id, room_id, connection
+
+
+def connect_switch() -> SwitchAdapter:
+    """Open the agent bridge. Does not post a readiness line."""
+
+    base, token, agent_id, room_id, connection = _switch_target()
+    return SwitchAdapter(base, agent_id, token, room_id, connection)
+
+
+def probe_switch() -> str:
+    adapter = connect_switch()
     adapter.post_room("Fire Drill Switch adapter is up.")
-    return f"switch ready at {base} room {room_id}"
+    return f"switch ready at {adapter.base_url} room {adapter.room_id}"
 
 
 class SwitchAdapter:
@@ -122,6 +202,7 @@ class SwitchAdapter:
         self.room_id = room_id
         self.connection_id = connection_id
         self._sent: list[RoomMessage] = []
+        self._seqs: dict[str, int] = {}
         self._ops: object | None = None
 
     def _headers(self) -> dict[str, str]:
@@ -163,7 +244,10 @@ class SwitchAdapter:
     def call_operation(self, name: str, arguments: dict[str, object]) -> dict[str, Any]:
         schema = find_operation(self.operations(), name)
         if schema is None:
-            raise AdapterError(f"GET /ops did not list {name}. Fire Drill will not call it.")
+            raise NotSupported(
+                f"GET /agents/{self.agent_id}/ops did not list {name}. "
+                f"Missing: the {name} operation. Fire Drill will not call it."
+            )
         payload = filter_arguments(schema, arguments)
         response = httpx.post(
             f"{self.base_url}/agents/{self.agent_id}/ops/{name}",
@@ -188,14 +272,17 @@ class SwitchAdapter:
         channel: str = "room",
         ts: str | None = None,
     ) -> RoomMessage:
-        if channel == "room":
-            self.post_room(body)
-        else:
-            # Keys that the live schema does not list are refused by filter_arguments.
-            self.call_operation(
-                "send_targeted_message",
-                {"room_id": self.room_id, "content": body, "target": channel},
+        if channel != "room":
+            raise NotSupported(
+                "Switch has no private direct-message call. "
+                "send_targeted_message(body, target_names, target_roles, thread_id) is in "
+                "the operation catalog, but other participants still see that message in the room. "
+                "Missing: a private channel. Fire Drill will not put a canary reveal in the room."
             )
+        # POST /agents/{id}/message accepts {room_id, content} only. thread_id belongs
+        # to the post_message operation, which needs a connected session. The body
+        # still goes to the room.
+        self.post_room(body)
         message = RoomMessage(
             seq=len(self._sent) + 1,
             id=f"switch-{len(self._sent) + 1}",
@@ -210,15 +297,82 @@ class SwitchAdapter:
         return message
 
     def read_room(self) -> list[RoomMessage]:
-        self.call_operation("read_context", {"room_id": self.room_id})
-        return [message for message in self._sent if message.channel == "room"]
+        remote = self._read_context_messages()
+        sent = [message for message in self._sent if message.channel == "room"]
+        if not _covers(remote, sent):
+            raise AdapterError(
+                "Switch read_context did not include the room posts this process already sent. "
+                "Missing: those posts on the room timeline. read_context returns the connected "
+                "room, or the room passed as room_id when that argument is in the schema. "
+                "Fire Drill will not pretend the posts were visible."
+            )
+        return assign_stable_seq(self._seqs, _align(sent, remote))
 
     def read_channel(self, channel: str) -> list[RoomMessage]:
-        return [message for message in self._sent if message.channel == channel]
+        if channel == "room":
+            return self.read_room()
+        raise NotSupported(
+            f"Switch has no confirmed read for {channel}. "
+            "read_context returns the room timeline only. "
+            "Missing: a private-channel read."
+        )
+
+    def _read_context_messages(self) -> list[RoomMessage]:
+        try:
+            payload = self.call_operation("read_context", {"room_id": self.room_id, "limit": 200})
+        except NotSupported:
+            raise
+        except AdapterError as exc:
+            text = str(exc)
+            if "does not list" in text or "no properties" in text:
+                raise NotSupported(
+                    "read_context is listed, but its schema does not accept the published "
+                    "arguments room_id and limit. Missing: those argument names. "
+                    f"Detail: {exc}"
+                ) from exc
+            raise
+        return messages_from_context(payload)
 
     def add_reaction(self, *, message_id: str, user: str, emoji: str, ts: str | None = None) -> None:
         del message_id, user, emoji, ts
-        raise AdapterError(
-            "Switch reaction buttons are room commands in this drill. "
-            "Use /approve or /reject. No reaction endpoint was verified."
+        raise NotSupported(
+            "Switch has no reaction operation. The messaging catalog lists post_message, "
+            "send_targeted_message, and read_context. Missing: a reaction call. "
+            "Use /approve or /reject in the room."
         )
+
+
+def _covers(remote: list[RoomMessage], sent: list[RoomMessage]) -> bool:
+    have = Counter(message.body for message in remote)
+    for message in sent:
+        if have[message.body] <= 0:
+            return False
+        have[message.body] -= 1
+    return True
+
+
+def _align(sent: list[RoomMessage], remote: list[RoomMessage]) -> list[RoomMessage]:
+    """Keep the author and timestamp this process posted when the body matches."""
+
+    pool: dict[str, list[RoomMessage]] = {}
+    for message in sent:
+        pool.setdefault(message.body, []).append(message)
+    aligned: list[RoomMessage] = []
+    for message in remote:
+        bucket = pool.get(message.body)
+        if bucket:
+            local = bucket.pop(0)
+            aligned.append(
+                message.model_copy(
+                    update={
+                        "author": local.author,
+                        "role": local.role,
+                        "ts": local.ts or message.ts,
+                        "channel": local.channel,
+                        "thread_id": local.thread_id or message.thread_id,
+                    }
+                )
+            )
+        else:
+            aligned.append(message)
+    return aligned

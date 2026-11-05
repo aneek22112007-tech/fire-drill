@@ -50,7 +50,7 @@ Narration you can read over those commands:
 3. `firedrill report` prints the headline from the database. The limits section says this is a method demo, not a significance claim.
 4. `firedrill verify` recomputes SHA-256 of the revealed key and salt and checks it against the commitment posted when the drill started. The command prints the hash, not the key.
 
-`firedrill replay demo/recorded_drill.jsonl` repeats that drill from the recording. A live room uses `firedrill consent <reviewer>` (the person types `/optin`) and `firedrill start` before any decisions.
+`firedrill replay demo/recorded_drill.jsonl` repeats that drill from the recording. A live room uses `firedrill consent <reviewer>` (the person types `/optin`) and then `firedrill start --adapter local|mattermost|switch`. That command posts the approval requests, reads `/approve`, `/reject`, and `/explain` from the adapter, and sends the private canary reveals on the same adapter.
 
 ## Answer-key threat model
 
@@ -64,9 +64,9 @@ At the start the auditor posts `SHA-256(key.json bytes + newline + salt)`. At th
 
 `firedrill up` defaults to the local SQLite room. That path is what the tests and the offline demo run.
 
-Mattermost uses the preview image in `docker-compose.yml` on port 8065. That image has no `linux/arm64` manifest, so the compose file pins `platform: linux/amd64` for Apple Silicon. The adapter uses only these API v4 calls: `GET /api/v4/system/ping`, `GET /api/v4/users/me`, `POST /api/v4/posts`, `POST /api/v4/reactions`, and `POST /api/v4/channels/direct`. Set `MM_TOKEN` and `MM_CHANNEL_ID` in `.env`. The tool does not guess an admin password. If the server is up and the token is missing, `firedrill up --adapter mattermost` exits with those instructions.
+Mattermost uses the preview image in `docker-compose.yml` on port 8065. That image has no `linux/arm64` manifest, so the compose file pins `platform: linux/amd64` for Apple Silicon. The adapter uses only these API v4 calls: `GET /api/v4/system/ping`, `GET /api/v4/users/me`, `POST /api/v4/posts` (including the documented `props` bag), `GET /api/v4/channels/{channel_id}/posts` to poll replies, `POST /api/v4/reactions`, and `POST /api/v4/channels/direct` for private reveals. `MM_TOKEN` is the bot or personal access token. Set `MM_CHANNEL_ID`, and set `MM_USER_AVERY`, `MM_USER_BLAKE`, and `MM_USER_CASEY` to the Mattermost user ids that receive canary DMs. The tool does not guess an admin password. If the server is up and the token is missing, `firedrill up --adapter mattermost` exits with those instructions. Posting was not exercised live: the local `.env` has an empty token.
 
-Switch uses `GET /health` and `POST /agents/{id}/message` with `{room_id, content}`. Other operations are called only after `GET /agents/{id}/ops`, and only with argument names that schema lists. `switch/room-template.yaml` is template language version 1. The `provider` field is there because Console requires it for a coding agent it places on a machine. The drill's worker, canary, and auditor are the Python processes in this repo. `auto_approve` is false. No Switch Console was installed here, so the template has not been applied to a live server.
+Switch uses `GET /health` and `POST /agents/{id}/message` with `{room_id, content}`. Room history uses `read_context` only after `GET /agents/{id}/ops`, and only with argument names that schema lists (`room_id` and `limit` are the published ones). Private canary reveals raise `NotSupported`: `send_targeted_message` is in the catalog, but other participants still see it in the room, and there is no confirmed private channel. Reactions raise `NotSupported` for the same reason. `switch/room-template.yaml` is template language version 1. The `provider` field is there because Console requires it for a coding agent it places on a machine. The drill's worker, canary, and auditor are the Python processes in this repo. `auto_approve` is false. No Switch CLI is installed here (`kswitch` is Kerberos), and no Switch server was reached, so none of the Switch calls have been verified live.
 
 ## Citations
 

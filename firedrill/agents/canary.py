@@ -11,7 +11,7 @@ from pathlib import Path
 
 import yaml
 
-from firedrill.adapters.local import LocalAdapter
+from firedrill.adapters.base import RoomBus
 from firedrill.agents.worker import new_request_id
 from firedrill.bus import CHANGE_AGENT, CHANGE_ROLE, format_approval
 from firedrill.models import ApprovalRequest, Flaw
@@ -23,7 +23,7 @@ def load_library(path: Path) -> list[Flaw]:
 
 
 class Canary:
-    def __init__(self, bus: LocalAdapter, submit_mapping: Callable[[str, str], None]) -> None:
+    def __init__(self, bus: RoomBus, submit_mapping: Callable[[str, str], None]) -> None:
         self.bus = bus
         self._submit_mapping = submit_mapping
 

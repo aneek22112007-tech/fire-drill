@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from firedrill.adapters.local import LocalAdapter
+from firedrill.adapters.base import RoomBus
 from firedrill.commands import catch_dm, miss_dm, parse_approval, parse_command
 from firedrill.adapt import is_flat
 from firedrill.commitment import commitment_hash, commitment_message, reveal_message
@@ -25,7 +25,7 @@ class DrillSession:
     def __init__(
         self,
         *,
-        bus: LocalAdapter,
+        bus: RoomBus,
         store: AuditorStore,
         executor: Executor,
         required: list[str],
@@ -40,6 +40,7 @@ class DrillSession:
         self.key_bytes = key_bytes
         self.started = False
         self._seen_seq = 0
+        self._ingested: set[str] = set()
         self.needs_explain: set[str] = set()
         self.explained_ready: set[str] = set()
 
@@ -118,6 +119,32 @@ class DrillSession:
             self.needs_explain.discard(reviewer)
         self._arm_flatness(reviewer, ts)
         return parsed.name
+
+    def ingest_commands(self) -> list[str]:
+        """Read /optin, /approve, /reject, and /explain from the room and apply each once."""
+
+        results: list[str] = []
+        allowed = set(self.required)
+        while True:
+            chosen = None
+            for message in self.bus.read_room():
+                if message.id in self._ingested:
+                    continue
+                parsed = parse_command(message.body)
+                if parsed is None or message.author not in allowed:
+                    self._ingested.add(message.id)
+                    continue
+                chosen = message
+                break
+            if chosen is None:
+                break
+            self._ingested.add(chosen.id)
+            seen = {message.id for message in self.bus.read_room()}
+            results.append(self.command(chosen.author, chosen.body.strip(), chosen.ts))
+            for message in self.bus.read_room():
+                if message.id not in seen:
+                    self._ingested.add(message.id)
+        return results
 
     def react(self, reviewer: str, message_id: str, emoji: str, ts: str) -> str:
         """Map Mattermost-style reactions onto approve and reject."""

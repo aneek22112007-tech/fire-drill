@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import secrets
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -11,7 +10,7 @@ import typer
 from rich.console import Console
 
 from firedrill import __version__
-from firedrill.adapters.base import AdapterError
+from firedrill.adapters.base import AdapterError, RoomBus
 from firedrill.adapters.local import LocalAdapter
 from firedrill.agents.auditor import Auditor
 from firedrill.agents.canary import load_library
@@ -19,10 +18,12 @@ from firedrill.commitment import verify_reveal_text
 from firedrill.envfile import load_env_file
 from firedrill.executor import Executor
 from firedrill.humans import REVIEWERS
-from firedrill.paths import default_paths
+from firedrill.paths import DrillPaths, default_paths
 from firedrill.registry import WorkerRegistry
 from firedrill.report import write_report
 from firedrill.session import ConsentError, DrillSession
+from firedrill.simulate import build_events
+from firedrill.simulate import play as play_events
 from firedrill.simulate import replay as replay_recording
 from firedrill.simulate import run_demo as play_demo
 from firedrill.store import AuditorStore
@@ -89,23 +90,59 @@ def consent(
 
 
 @app.command()
-def start() -> None:
-    """Post the answer-key commitment once every reviewer has sent /optin."""
+def start(
+    adapter: str = typer.Option("local", "--adapter", help="local, mattermost, or switch"),
+) -> None:
+    """Run the seeded drill through a room adapter.
 
-    with _live() as (auditor, store, closers):
+    Posts approval requests, reads /approve /reject /explain back from that
+    room, and sends private canary reveals on the same adapter. Refuses to
+    start until every reviewer has sent /optin. Reviewer lines are the offline
+    seed. Switch has no confirmed private DM, so that adapter stops with
+    NotSupported when a reveal is due.
+    """
+
+    if adapter not in {"local", "mattermost", "switch"}:
+        raise typer.BadParameter("adapter must be local, mattermost, or switch")
+    paths = default_paths()
+    paths.ensure()
+    if not paths.key_file.is_file():
+        raise typer.BadParameter("auditor_private/key.json is missing. Run make setup.")
+    required = [row["id"] for row in REVIEWERS]
+    store = AuditorStore(paths.drill_db)
+    try:
+        missing = [reviewer for reviewer in required if reviewer not in store.opted()]
+        existing = store.meta("commitment")
+    finally:
+        store.close()
+    if missing:
+        console.print(str(ConsentError(missing)))
+        raise typer.Exit(code=1)
+    if existing:
+        console.print(f"drill already started sha256={existing}")
+        return
+    remote: RoomBus | None = None
+    if adapter != "local":
         try:
-            existing = store.meta("commitment")
-            if existing:
-                console.print(f"drill already started sha256={existing}")
-                return
-            salt = "fd-salt-" + secrets.token_hex(4)
-            digest = auditor.start(salt, _now())
-        except ConsentError as exc:
+            remote = open_bus(adapter, paths)
+        except AdapterError as exc:
             console.print(str(exc))
             raise typer.Exit(code=1) from exc
-        finally:
-            _close(closers)
+    try:
+        headline = play_events(paths, build_events(paths, offline=True), bus=remote)
+    except AdapterError as exc:
+        console.print(str(exc))
+        raise typer.Exit(code=1) from exc
+    finally:
+        _close([remote] if remote is not None else [])
+    digest = ""
+    store = AuditorStore(paths.drill_db)
+    try:
+        digest = store.meta("commitment") or ""
+    finally:
+        store.close()
     console.print(f"drill started sha256={digest}")
+    console.print(headline)
 
 
 @app.command("run-demo")
@@ -170,6 +207,23 @@ def verify() -> None:
     console.print(f"commitment ok sha256={detail}")
 
 
+def open_bus(name: str, paths: DrillPaths) -> RoomBus:
+    """Return the room bus for local, mattermost, or switch."""
+
+    if name == "local":
+        paths.ensure()
+        return LocalAdapter(paths.room_db)
+    if name == "mattermost":
+        from firedrill.adapters.mattermost import connect_mattermost
+
+        return connect_mattermost()
+    if name == "switch":
+        from firedrill.adapters.switch import connect_switch
+
+        return connect_switch()
+    raise typer.BadParameter("adapter must be local, mattermost, or switch")
+
+
 def _up_local() -> None:
     paths = default_paths()
     paths.ensure()
@@ -208,7 +262,7 @@ class _Live:
         secret = os.environ.get("WORKER_SECRET", "").strip()
         if not secret:
             raise typer.BadParameter("WORKER_SECRET is empty. Run make setup.")
-        self.bus = LocalAdapter(paths.room_db)
+        self.bus: RoomBus = open_bus("local", paths)
         self.store = AuditorStore(paths.drill_db)
         self.registry = WorkerRegistry(paths.registry_db, secret.encode("utf-8"))
         flaws = {flaw.id: flaw for flaw in load_library(paths.library)}

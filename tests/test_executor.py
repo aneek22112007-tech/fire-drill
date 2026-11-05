@@ -31,3 +31,13 @@ def _copy_repo(tmp_path: Path) -> Path:
     return dest
 
 
+def _pytest(repo: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, "-m", "pytest"],
+        cwd=repo,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+

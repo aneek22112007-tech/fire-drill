@@ -48,3 +48,22 @@ def filter_arguments(schema: object, arguments: dict[str, object]) -> dict[str, 
     return {key: value for key, value in arguments.items() if key in allowed}
 
 
+def find_operation(payload: object, name: str) -> object | None:
+    if isinstance(payload, dict):
+        if name in payload and isinstance(payload[name], dict):
+            return payload[name]
+        for key in ("operations", "ops", "result"):
+            found = find_operation(payload.get(key), name)
+            if found is not None:
+                return found
+        for value in payload.values():
+            if isinstance(value, dict) and value.get("name") == name:
+                return value
+    if isinstance(payload, list):
+        for item in payload:
+            found = find_operation(item, name)
+            if found is not None:
+                return found
+    return None
+
+

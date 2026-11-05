@@ -78,3 +78,23 @@
 {"expect": "explained", "kind": "command", "line": "/explain fd-0bf4b572 I read the diff and it matches the summary.", "reviewer": "casey", "ts": "2026-11-05T15:05:55.900Z"}
 {"expect": "approve", "kind": "command", "line": "/approve fd-0bf4b572", "reviewer": "casey", "ts": "2026-11-05T15:06:06.700Z"}
 {"action": {"function_body": "def fn_06() -> int:\n    return 6\n", "function_name": "fn_06", "key": null, "kind": "add_function", "test_body": "def test_fn_06():\n    from samplelib.ops import fn_06\n    assert fn_06() == 6\n", "test_name": "test_fn_06", "value": null, "version": null}, "complexity": 4, "id": "fd-c9db32ba", "kind": "real", "risk": "medium", "summary": "Add fn_06 and a unit test that checks its return value.", "ts": "2026-11-05T15:06:06.750Z"}
+{"kind": "adaptation", "reason": "Medium-risk item routed to avery by round-robin.", "reviewer": "avery", "rule": "route_medium", "ts": "2026-11-05T15:06:06.800Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-c9db32ba I read the diff and it matches the summary.", "reviewer": "avery", "ts": "2026-11-05T15:06:06.850Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-c9db32ba", "reviewer": "avery", "ts": "2026-11-05T15:06:40.750Z"}
+{"action": {"function_body": null, "function_name": null, "key": "max_connections", "kind": "config_set", "test_body": null, "test_name": null, "value": 50, "version": null}, "complexity": 6, "id": "fd-ee9112ec", "kind": "real", "risk": "high", "summary": "Raise max_connections to 50. It stays under the documented cap of 100.", "ts": "2026-11-05T15:06:40.800Z"}
+{"kind": "adaptation", "reason": "High-risk item routed to blake, the reviewer with the oldest last decision.", "reviewer": "blake", "rule": "route_high_risk", "ts": "2026-11-05T15:06:40.850Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-ee9112ec I read the diff and it matches the summary.", "reviewer": "blake", "ts": "2026-11-05T15:06:40.900Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-ee9112ec", "reviewer": "blake", "ts": "2026-11-05T15:06:43.900Z"}
+{"action": {"function_body": null, "function_name": null, "key": null, "kind": "version_bump", "test_body": null, "test_name": null, "value": null, "version": "1.0.7"}, "complexity": 2, "id": "fd-b3d72116", "kind": "real", "risk": "low", "summary": "Bump the sample service patch version to 1.0.7.", "ts": "2026-11-05T15:06:43.950Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-b3d72116 I read the diff and it matches the summary.", "reviewer": "blake", "ts": "2026-11-05T15:06:44.000Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-b3d72116", "reviewer": "blake", "ts": "2026-11-05T15:06:47.650Z"}
+{"flaw_id": "staging-vs-prod", "id": "fd-843e2282", "kind": "canary", "ts": "2026-11-05T15:06:47.700Z"}
+{"kind": "adaptation", "reason": "Medium-risk item routed to casey by round-robin.", "reviewer": "casey", "rule": "route_medium", "ts": "2026-11-05T15:06:47.750Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-843e2282 I read the diff and it matches the summary.", "reviewer": "casey", "ts": "2026-11-05T15:06:47.800Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-843e2282", "reviewer": "casey", "ts": "2026-11-05T15:07:03.700Z"}
+{"action": {"function_body": null, "function_name": null, "key": "feature_07", "kind": "config_set", "test_body": null, "test_name": null, "value": true, "version": null}, "complexity": 3, "id": "fd-bc272630", "kind": "real", "risk": "low", "summary": "Set config feature_07 to True for the sample service.", "ts": "2026-11-05T15:07:03.750Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-bc272630 I read the diff and it matches the summary.", "reviewer": "avery", "ts": "2026-11-05T15:07:03.800Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-bc272630", "reviewer": "avery", "ts": "2026-11-05T15:07:34.750Z"}
+{"action": {"function_body": "def fn_07() -> int:\n    return 7\n", "function_name": "fn_07", "key": null, "kind": "add_function", "test_body": "def test_fn_07():\n    from samplelib.ops import fn_07\n    assert fn_07() == 7\n", "test_name": "test_fn_07", "value": null, "version": null}, "complexity": 4, "id": "fd-bea7852d", "kind": "real", "risk": "medium", "summary": "Add fn_07 and a unit test that checks its return value.", "ts": "2026-11-05T15:07:34.800Z"}
+{"kind": "adaptation", "reason": "Medium-risk item routed to blake by round-robin.", "reviewer": "blake", "rule": "route_medium", "ts": "2026-11-05T15:07:34.850Z"}
+{"expect": "explained", "kind": "command", "line": "/explain fd-bea7852d I read the diff and it matches the summary.", "reviewer": "blake", "ts": "2026-11-05T15:07:34.900Z"}

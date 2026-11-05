@@ -17,3 +17,16 @@
 
 version: 1
 
+params:
+  provider:
+    type: provider
+    label: Coding agent Switch Console may place
+    description: Required by the template language. The drill itself is the Python package.
+    default: [claude, codex, opencode]
+    input: advanced
+  location:
+    type: location
+    label: Machine
+    default: local
+    input: advanced
+

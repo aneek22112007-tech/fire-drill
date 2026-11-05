@@ -77,3 +77,6 @@ class MattermostAdapter:
         self.user_id = user_id
         self._sent: list[RoomMessage] = []
 
+    def _headers(self) -> dict[str, str]:
+        return {"Authorization": f"Bearer {self.token}"}
+

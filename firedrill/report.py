@@ -35,3 +35,12 @@ def fmt_corr(value: float | None) -> str:
     return f"{value:.3f}"
 
 
+def headline(metrics: DrillMetrics) -> str:
+    return (
+        f"Injected {metrics.canaries_injected} canaries across {metrics.items} items; "
+        f"caught {metrics.canaries_caught}. "
+        f"Median review time {fmt_seconds(metrics.median_canary_s)}s on canaries vs "
+        f"{fmt_seconds(metrics.median_real_s)}s on real items."
+    )
+
+

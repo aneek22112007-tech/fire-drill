@@ -55,3 +55,16 @@ class ReviewerMetrics:
 
 
 @dataclass
+class DrillMetrics:
+    items: int
+    canaries_injected: int
+    canaries_caught: int
+    catch_rate: float | None
+    median_canary_s: float | None
+    median_real_s: float | None
+    correlation: float | None
+    by_reviewer: list[ReviewerMetrics] = field(default_factory=list)
+    by_mast: dict[str, float | None] = field(default_factory=dict)
+    flat_reviewers: list[str] = field(default_factory=list)
+
+

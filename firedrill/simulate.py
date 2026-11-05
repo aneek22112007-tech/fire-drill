@@ -265,3 +265,78 @@ def replay(paths: DrillPaths, recording: Path) -> str:
     return play(paths, read_events(recording))
 
 
+def play(paths: DrillPaths, events: list[dict[str, object]]) -> str:
+    meta = next(event for event in events if event.get("kind") == "meta")
+    key_bytes = base64.b64decode(str(meta["key_b64"]), validate=True)
+    secret = os.environ.get("WORKER_SECRET", "").strip() or "firedrill-demo-worker-secret"
+    _reset(paths)
+    bus = LocalAdapter(paths.room_db)
+    store = AuditorStore(paths.drill_db)
+    registry = WorkerRegistry(paths.registry_db, secret.encode("utf-8"))
+    flaws = {flaw.id: flaw for flaw in load_library(paths.library)}
+    session = DrillSession(
+        bus=bus,
+        store=store,
+        executor=Executor(registry, paths.work_repo),
+        required=[row["id"] for row in REVIEWERS],
+        flaws=flaws,
+        key_bytes=key_bytes,
+    )
+    auditor = Auditor(session)
+    worker = Worker(registry, bus, paths.work_repo)
+    canary = Canary(bus, auditor.ingest)
+    try:
+        for index, event in enumerate(events):
+            kind = str(event["kind"])
+            if kind == "meta":
+                continue
+            if kind == "optin":
+                result = auditor.command(str(event["reviewer"]), "/optin", str(event["ts"]))
+                if result != "opted-in":
+                    raise RuntimeError(f"event {index}: optin returned {result}")
+                continue
+            if kind == "start":
+                auditor.start(str(event["salt"]), str(event["ts"]))
+                continue
+            if kind == "adaptation":
+                reviewer = event.get("reviewer")
+                store.record_adaptation(
+                    ts=str(event["ts"]),
+                    rule=str(event["rule"]),
+                    reviewer=None if reviewer is None else str(reviewer),
+                    reason=str(event["reason"]),
+                )
+                continue
+            if kind == "real":
+                worker.propose(
+                    Action.model_validate(event["action"]),
+                    summary=str(event["summary"]),
+                    risk=str(event["risk"]),  # type: ignore[arg-type]
+                    complexity=int(event["complexity"]),
+                    request_id=str(event["id"]),
+                    ts=str(event["ts"]),
+                )
+                continue
+            if kind == "canary":
+                canary.post_flaw(flaws[str(event["flaw_id"])], request_id=str(event["id"]), ts=str(event["ts"]))
+                continue
+            if kind == "command":
+                result = auditor.command(str(event["reviewer"]), str(event["line"]), str(event["ts"]))
+                expected = str(event["expect"])
+                if result != expected:
+                    raise RuntimeError(
+                        f"event {index}: {event['line']!r} returned {result}, expected {expected}"
+                    )
+                continue
+            if kind == "reveal":
+                auditor.reveal(str(event["ts"]))
+                continue
+            raise RuntimeError(f"event {index}: unknown kind {kind}")
+        _sample_tests(paths.work_repo)
+        return write_report(store, paths.report)
+    finally:
+        registry.close()
+        store.close()
+        bus.close()
+
+

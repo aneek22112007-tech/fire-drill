@@ -44,3 +44,14 @@ def pearson(xs: list[float], ys: list[float]) -> float | None:
 
 
 @dataclass
+class ReviewerMetrics:
+    reviewer: str
+    decisions: int
+    catch_rate: float | None
+    median_canary_s: float | None
+    median_real_s: float | None
+    correlation: float | None
+    flat: bool
+
+
+@dataclass

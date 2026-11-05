@@ -56,3 +56,14 @@ def _careful_extra(summary: str, diff: str) -> str:
     return ""
 
 
+def review(profile: str, summary: str, diff: str) -> tuple[str, str]:
+    """Return (approve|reject, reason). Real work is approved by every profile."""
+
+    if profile == "rushed":
+        return "approve", ""
+    reason = _obvious(summary, diff)
+    if profile == "careful" and not reason:
+        reason = _careful_extra(summary, diff)
+    if reason:
+        return "reject", reason
+    return "approve", ""

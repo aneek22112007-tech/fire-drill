@@ -107,3 +107,18 @@ class MattermostAdapter:
         if response.status_code >= 400:
             raise AdapterError(f"POST /api/v4/reactions returned {response.status_code}.")
 
+    def direct_channel(self, other_user_id: str) -> str:
+        response = httpx.post(
+            f"{self.base_url}/api/v4/channels/direct",
+            headers=self._headers(),
+            json=[self.user_id, other_user_id],
+            timeout=15.0,
+        )
+        if response.status_code >= 400:
+            raise AdapterError(f"POST /api/v4/channels/direct returned {response.status_code}.")
+        payload = response.json()
+        channel_id = payload.get("id") if isinstance(payload, dict) else None
+        if not channel_id:
+            raise AdapterError("POST /api/v4/channels/direct did not return a channel id.")
+        return str(channel_id)
+

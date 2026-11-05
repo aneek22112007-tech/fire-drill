@@ -160,3 +160,6 @@ class MattermostAdapter:
 
         return [message for message in self._sent if message.channel == "room"]
 
+    def read_channel(self, channel: str) -> list[RoomMessage]:
+        return [message for message in self._sent if message.channel == channel]
+

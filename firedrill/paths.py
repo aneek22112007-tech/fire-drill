@@ -32,3 +32,7 @@ class DrillPaths:
         return self.root / "auditor_private"
 
     @property
+    def key_file(self) -> Path:
+        return self.auditor_dir / "key.json"
+
+    @property

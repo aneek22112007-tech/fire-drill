@@ -6,3 +6,6 @@ from firedrill.session import DrillSession
 
 
 class Auditor:
+    def __init__(self, session: DrillSession) -> None:
+        self._session = session
+

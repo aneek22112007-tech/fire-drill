@@ -27,3 +27,20 @@ _REVEAL = re.compile(
 )
 
 
+def verify_reveal_text(text: str) -> tuple[bool, str]:
+    """Return whether the posted reveal matches the hash of the posted key."""
+
+    match = _REVEAL.search(text)
+    if match is None:
+        return False, "no reveal message found"
+    claimed, salt, encoded = match.group(1), match.group(2), match.group(3).replace("\n", "")
+    try:
+        key_bytes = base64.b64decode(encoded.encode("ascii"), validate=True)
+    except ValueError:
+        return False, "key encoding is not valid base64"
+    actual = commitment_hash(key_bytes, salt)
+    if not hmac_equal(claimed, actual):
+        return False, "commitment does not match the revealed key"
+    return True, actual
+
+

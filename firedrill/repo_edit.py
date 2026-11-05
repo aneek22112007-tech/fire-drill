@@ -115,3 +115,11 @@ def diff_trees(before: Path, after: Path) -> str:
     return "".join(chunks)
 
 
+def preview_diff(repo: Path, action: Action) -> str:
+    """Copy the tree, apply the action, and return the diff. `repo` stays as it is."""
+
+    with tempfile.TemporaryDirectory() as tmp:
+        copied = Path(tmp) / "repo"
+        shutil.copytree(repo, copied)
+        apply_action(copied, action)
+        return diff_trees(repo, copied)

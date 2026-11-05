@@ -40,3 +40,7 @@ class DrillPaths:
         return self.auditor_dir / "tokens.json"
 
     @property
+    def drill_db(self) -> Path:
+        return self.auditor_dir / "drill.db"
+
+    @property

@@ -17,3 +17,8 @@ from firedrill.bus import CHANGE_AGENT, CHANGE_ROLE, format_approval
 from firedrill.models import ApprovalRequest, Flaw
 
 
+def load_library(path: Path) -> list[Flaw]:
+    raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    return [Flaw.model_validate(item) for item in raw["flaws"]]
+
+

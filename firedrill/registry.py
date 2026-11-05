@@ -28,3 +28,4 @@ def sign_request(secret: bytes, request_id: str) -> str:
     return hmac.new(secret, request_id.encode("utf-8"), hashlib.sha256).hexdigest()
 
 
+class WorkerRegistry:

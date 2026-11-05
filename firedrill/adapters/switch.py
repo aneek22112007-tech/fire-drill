@@ -22,3 +22,19 @@ from firedrill.adapters.base import AdapterError
 from firedrill.models import RoomMessage
 
 
+def property_names(node: object) -> set[str] | None:
+    """Return published argument names, or None when the schema does not list them."""
+
+    if not isinstance(node, dict):
+        return None
+    props = node.get("properties")
+    if isinstance(props, dict):
+        return {str(key) for key in props}
+    for key in ("parameters", "arguments", "input", "schema", "input_schema"):
+        if key in node:
+            found = property_names(node[key])
+            if found is not None:
+                return found
+    return None
+
+

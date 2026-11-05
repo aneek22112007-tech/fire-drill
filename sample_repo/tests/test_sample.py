@@ -23,3 +23,5 @@ def test_config_loads():
     assert config["max_connections"] <= 100
 
 
+def test_constraints_file_present():
+    assert Path(repo_root() / "CONSTRAINTS.md").is_file()

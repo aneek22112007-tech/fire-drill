@@ -81,3 +81,27 @@ def make_function(index: int) -> Action:
     )
 
 
+def describe_action(action: Action) -> tuple[str, Risk, int]:
+    if action.kind == "version_bump":
+        return (
+            f"Bump the sample service patch version to {action.version}.",
+            "low",
+            2,
+        )
+    if action.kind == "config_set" and action.key == "max_connections":
+        return (
+            f"Raise max_connections to {action.value}. It stays under the documented cap of 100.",
+            "high",
+            6,
+        )
+    if action.kind == "config_set":
+        return (
+            f"Set config {action.key} to {action.value} for the sample service.",
+            "low",
+            3,
+        )
+    return (
+        f"Add {action.function_name} and a unit test that checks its return value.",
+        "medium",
+        4,
+    )

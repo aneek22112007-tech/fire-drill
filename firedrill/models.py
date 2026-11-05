@@ -44,3 +44,15 @@ class Reviewer(BaseModel):
     opted_in: bool = False
 
 
+class Flaw(BaseModel):
+    id: str
+    title: str
+    mast_mode: str
+    template: str
+    tell: str
+    summary: str
+    risk: Risk
+    complexity: int = Field(ge=1, le=10)
+    diff: str
+
+

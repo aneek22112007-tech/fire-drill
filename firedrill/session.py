@@ -173,3 +173,12 @@ class DrillSession:
         self.started = True
         return digest
 
+    def reveal(self, ts: str) -> str:
+        salt = self.store.meta("salt")
+        if salt is None:
+            raise RuntimeError("cannot reveal a drill that has not started")
+        body = reveal_message(self.key_bytes, salt)
+        self._say("auditor", "auditor", body, ts)
+        self.store.set_meta("revealed", "1")
+        return body
+

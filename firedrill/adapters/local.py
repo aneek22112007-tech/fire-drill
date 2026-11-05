@@ -11,3 +11,7 @@ from pathlib import Path
 from firedrill.models import RoomMessage
 
 
+def _now() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+

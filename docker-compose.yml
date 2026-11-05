@@ -1,0 +1,9 @@
+# Mattermost preview for the room bridge.
+# The image listens on 8065. This file does not set an admin password.
+# The published image has no linux/arm64 manifest, so Apple Silicon uses amd64.
+services:
+  mattermost:
+    image: mattermost/mattermost-preview
+    platform: linux/amd64
+    ports:
+      - "8065:8065"

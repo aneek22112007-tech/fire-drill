@@ -53,3 +53,6 @@ class Worker:
         )
         return request
 
+    def action_version_bump(self) -> Action:
+        return Action(kind="version_bump", version=bump_patch(read_version(self.repo)))
+

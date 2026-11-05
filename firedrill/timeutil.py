@@ -10,3 +10,8 @@ def parse_ts(value: str) -> datetime:
     return datetime.fromisoformat(text)
 
 
+def format_ts(moment: datetime) -> str:
+    utc = moment.astimezone(timezone.utc)
+    return utc.strftime("%Y-%m-%dT%H:%M:%S.") + f"{utc.microsecond // 1000:03d}Z"
+
+

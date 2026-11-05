@@ -14,3 +14,10 @@ from firedrill.timeutil import seconds_between
 
 
 class ConsentError(RuntimeError):
+    def __init__(self, missing: list[str]) -> None:
+        self.missing = missing
+        super().__init__(
+            "drill refused to start; missing /optin from: " + ", ".join(missing)
+        )
+
+

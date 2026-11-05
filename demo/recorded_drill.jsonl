@@ -1,0 +1,20 @@
+{"key_b64": "ewogICJkcmlsbF9rZXkiOiAiMDVmODljOTAyNTRlNjhmYTM2ZmJhZmM4NGUwN2M3YzcxOWQwOGNhNjBlZTJhY2EwMmM3ZTJlNGUwNTJkMTQyNCIsCiAgInB1cnBvc2UiOiAiZmlyZS1kcmlsbCBhbnN3ZXIta2V5IHNlYWwiLAogICJ2ZXJzaW9uIjogMQp9Cg==", "kind": "meta", "salt": "fd-salt-747ced6e", "seed": 20261105}
+{"kind": "optin", "reviewer": "avery", "ts": "2026-11-05T15:00:00.000Z"}
+{"kind": "optin", "reviewer": "blake", "ts": "2026-11-05T15:00:01.000Z"}
+{"kind": "optin", "reviewer": "casey", "ts": "2026-11-05T15:00:02.000Z"}
+{"kind": "start", "salt": "fd-salt-747ced6e", "ts": "2026-11-05T15:00:03.000Z"}
+{"action": {"function_body": null, "function_name": null, "key": "max_connections", "kind": "config_set", "test_body": null, "test_name": null, "value": 30, "version": null}, "complexity": 6, "id": "fd-defe2ecc", "kind": "real", "risk": "high", "summary": "Raise max_connections to 30. It stays under the documented cap of 100.", "ts": "2026-11-05T15:00:04.000Z"}
+{"kind": "adaptation", "reason": "High-risk item routed to avery, the reviewer with the oldest last decision.", "reviewer": "avery", "rule": "route_high_risk", "ts": "2026-11-05T15:00:04.050Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-defe2ecc", "reviewer": "avery", "ts": "2026-11-05T15:00:44.000Z"}
+{"kind": "adaptation", "reason": "Batched 2 low-risk items so reviewers see them together.", "reviewer": null, "rule": "batch_low_risk", "ts": "2026-11-05T15:00:44.050Z"}
+{"action": {"function_body": null, "function_name": null, "key": null, "kind": "version_bump", "test_body": null, "test_name": null, "value": null, "version": "1.0.1"}, "complexity": 2, "id": "fd-0c55f5d5", "kind": "real", "risk": "low", "summary": "Bump the sample service patch version to 1.0.1.", "ts": "2026-11-05T15:00:44.100Z"}
+{"action": {"function_body": null, "function_name": null, "key": "feature_01", "kind": "config_set", "test_body": null, "test_name": null, "value": true, "version": null}, "complexity": 3, "id": "fd-7c410181", "kind": "real", "risk": "low", "summary": "Set config feature_01 to True for the sample service.", "ts": "2026-11-05T15:00:44.150Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-0c55f5d5", "reviewer": "avery", "ts": "2026-11-05T15:01:12.100Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-7c410181", "reviewer": "blake", "ts": "2026-11-05T15:00:48.450Z"}
+{"action": {"function_body": "def fn_01() -> int:\n    return 1\n", "function_name": "fn_01", "key": null, "kind": "add_function", "test_body": "def test_fn_01():\n    from samplelib.ops import fn_01\n    assert fn_01() == 1\n", "test_name": "test_fn_01", "value": null, "version": null}, "complexity": 4, "id": "fd-d2183517", "kind": "real", "risk": "medium", "summary": "Add fn_01 and a unit test that checks its return value.", "ts": "2026-11-05T15:01:12.200Z"}
+{"kind": "adaptation", "reason": "Medium-risk item routed to casey by round-robin.", "reviewer": "casey", "rule": "route_medium", "ts": "2026-11-05T15:01:12.250Z"}
+{"expect": "approve", "kind": "command", "line": "/approve fd-d2183517", "reviewer": "casey", "ts": "2026-11-05T15:01:28.200Z"}
+{"kind": "adaptation", "reason": "Batched 3 low-risk items so reviewers see them together.", "reviewer": null, "rule": "batch_low_risk", "ts": "2026-11-05T15:01:28.250Z"}
+{"action": {"function_body": null, "function_name": null, "key": null, "kind": "version_bump", "test_body": null, "test_name": null, "value": null, "version": "1.0.2"}, "complexity": 2, "id": "fd-114ab0c8", "kind": "real", "risk": "low", "summary": "Bump the sample service patch version to 1.0.2.", "ts": "2026-11-05T15:01:28.300Z"}
+{"action": {"function_body": null, "function_name": null, "key": "feature_02", "kind": "config_set", "test_body": null, "test_name": null, "value": true, "version": null}, "complexity": 3, "id": "fd-7a428f45", "kind": "real", "risk": "low", "summary": "Set config feature_02 to True for the sample service.", "ts": "2026-11-05T15:01:28.350Z"}
+{"flaw_id": "off-by-one", "id": "fd-906b0ecb", "kind": "canary", "ts": "2026-11-05T15:01:28.400Z"}

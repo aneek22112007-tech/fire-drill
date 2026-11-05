@@ -60,3 +60,11 @@ def parse_approval(body: str) -> ApprovalRequest | None:
     )
 
 
+def miss_dm(flaw_id: str, title: str, tell: str) -> str:
+    return (
+        f"{MISS_MARK}\n"
+        f"You approved a canary ({flaw_id}: {title}). It was not executed.\n"
+        f"Clue: {tell}"
+    )
+
+

@@ -377,3 +377,58 @@ def _note(rule: str, reviewer: str | None, reason: str, ts: str) -> dict[str, ob
     return {"kind": "adaptation", "rule": rule, "reviewer": reviewer, "reason": reason, "ts": ts}
 
 
+def _decide(
+    item: Item,
+    reviewer: str,
+    post_ts: str,
+    clock: str,
+    events: list[dict[str, object]],
+    profiles: dict[str, str],
+    last_ts: dict[str, str | None],
+    latencies: dict[str, list[float]],
+    needs_explain: set[str],
+) -> str:
+    if item.is_canary:
+        action, reason = review(profiles[reviewer], item.public_summary, item.diff)
+    else:
+        action, reason = "approve", ""
+    raw = latency_seconds(profiles[reviewer], item.complexity)
+    decision_ts = add_seconds(post_ts, raw)
+    actual = seconds_between(post_ts, decision_ts)
+    if action == "approve" and reviewer in needs_explain:
+        explain_ts = clock if parse_ts(clock) < parse_ts(decision_ts) else post_ts
+        events.append(
+            {
+                "kind": "command",
+                "reviewer": reviewer,
+                "line": f"/explain {item.request_id} {_EXPLAIN}",
+                "ts": explain_ts,
+                "expect": "explained",
+            }
+        )
+    if action == "approve":
+        line = f"/approve {item.request_id}"
+        expect = "approve"
+    else:
+        line = f"/reject {item.request_id} {reason}"
+        expect = "reject"
+    events.append(
+        {
+            "kind": "command",
+            "reviewer": reviewer,
+            "line": line,
+            "ts": decision_ts,
+            "expect": expect,
+        }
+    )
+    latencies[reviewer].append(actual)
+    last_ts[reviewer] = decision_ts
+    if action == "approve":
+        needs_explain.discard(reviewer)
+    if is_flat(latencies[reviewer]) and reviewer not in needs_explain:
+        needs_explain.add(reviewer)
+    if parse_ts(decision_ts) > parse_ts(clock):
+        return add_seconds(decision_ts, 0.05)
+    return add_seconds(clock, 0.05)
+
+

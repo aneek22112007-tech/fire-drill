@@ -89,3 +89,23 @@ def consent(
 
 
 @app.command()
+def start() -> None:
+    """Post the answer-key commitment once every reviewer has sent /optin."""
+
+    with _live() as (auditor, store, closers):
+        try:
+            existing = store.meta("commitment")
+            if existing:
+                console.print(f"drill already started sha256={existing}")
+                return
+            salt = "fd-salt-" + secrets.token_hex(4)
+            digest = auditor.start(salt, _now())
+        except ConsentError as exc:
+            console.print(str(exc))
+            raise typer.Exit(code=1) from exc
+        finally:
+            _close(closers)
+    console.print(f"drill started sha256={digest}")
+
+
+@app.command("run-demo")

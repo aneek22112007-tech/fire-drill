@@ -163,3 +163,6 @@ class MattermostAdapter:
     def read_channel(self, channel: str) -> list[RoomMessage]:
         return [message for message in self._sent if message.channel == channel]
 
+    def add_reaction(self, *, message_id: str, user: str, emoji: str, ts: str | None = None) -> None:
+        del user, ts
+        self.react(message_id, emoji)

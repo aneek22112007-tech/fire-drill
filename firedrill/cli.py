@@ -151,3 +151,22 @@ def report() -> None:
 
 
 @app.command()
+def verify() -> None:
+    """Recompute the commitment hash from the revealed key and salt."""
+
+    paths = default_paths()
+    bus = LocalAdapter(paths.room_db)
+    try:
+        text = "\n".join(message.body for message in bus.read_room())
+    finally:
+        bus.close()
+    ok, detail = verify_reveal_text(text)
+    if not ok:
+        console.print(detail)
+        raise typer.Exit(code=1)
+    if f"COMMITMENT sha256={detail}" not in text:
+        console.print("opening commitment does not match the reveal")
+        raise typer.Exit(code=1)
+    console.print(f"commitment ok sha256={detail}")
+
+

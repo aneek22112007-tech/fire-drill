@@ -191,3 +191,11 @@ def _up_local() -> None:
         bus.close()
 
 
+def _probe(func) -> None:  # type: ignore[no-untyped-def]
+    try:
+        console.print(func())
+    except AdapterError as exc:
+        console.print(str(exc))
+        raise typer.Exit(code=1) from exc
+
+

@@ -56,3 +56,14 @@ class AdaptationNote:
     reason: str
 
 
+def note_high_risk(reviewers: list[str], last_decision_ts: dict[str, str | None]) -> AdaptationNote:
+    chosen = route_high_risk(reviewers, last_decision_ts)
+    return AdaptationNote(
+        rule="route_high_risk",
+        reviewer=chosen,
+        reason=(
+            f"High-risk item routed to {chosen}, the reviewer with the oldest last decision."
+        ),
+    )
+
+

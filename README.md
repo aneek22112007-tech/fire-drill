@@ -3,10 +3,12 @@
 **Chaos engineering for human oversight of AI agents.** Fire Drill plants safe, believable flaws in an agent approval stream so a team can measure whether its human review gate is actually working.
 
 [![Live dashboard](https://img.shields.io/badge/live_demo-fire--drill.onrender.com-ffac63?style=for-the-badge)](https://fire-drill.onrender.com)
+[![Dashboard](https://img.shields.io/badge/dashboard-%23dashboard-76d7ba?style=for-the-badge)](https://fire-drill.onrender.com/#dashboard)
+[![Release](https://img.shields.io/badge/release-v1.0.0-b0a5ed?style=for-the-badge)](https://github.com/aneek22112007-tech/fire-drill/releases/tag/v1.0.0)
 [![Tests](https://img.shields.io/badge/tests-41_passing-76d7ba?style=for-the-badge)](#verification)
 [![License: MIT](https://img.shields.io/badge/license-MIT-b0a5ed?style=for-the-badge)](LICENSE)
 
-[Live site & dashboard](https://fire-drill.onrender.com) · [Recorded drill report](https://fire-drill.onrender.com/report.md) · [Switch room template](switch/room-template.yaml)
+[Live site](https://fire-drill.onrender.com) · [Dashboard](https://fire-drill.onrender.com/#dashboard) · [Recorded drill report](https://fire-drill.onrender.com/report.md) · [v1.0.0 release](https://github.com/aneek22112007-tech/fire-drill/releases/tag/v1.0.0) · [Switch room template](switch/room-template.yaml)
 
 ---
 
@@ -16,11 +18,11 @@ Fire Drill runs real, safe work in a shared room. A Canary agent occasionally su
 
 ## See it in action
 
-- **Landing page:** the oversight problem, three-agent architecture, safety model, and linked research.
+- **Landing page:** Linear-style dark hero with layered 3D parallax (orbit rings, glow particles, floating cards, mouse-driven depth, and light scroll tilt), plus the oversight problem, three-agent architecture, safety model, and linked research. Motion stays calm on mobile and respects `prefers-reduced-motion`.
 - **Live product dashboard:** real exported metrics, MAST-mode detection, reviewer patterns, adaptation filtering, and explain-back triggers.
 - **Visual replay:** a short, honest replay of the recorded result—not a simulated backend or a new execution.
 
-> **What “live” means:** the public dashboard loads `public/data/metrics.json` from the latest offline demo export. It is live, read-only report data. The public static site does not run agents or the private Auditor service.
+> **What “live” means:** the public dashboard loads `public/data/metrics.json` from the latest offline demo export. It is recorded offline metrics served as a static site—not a live agent backend. The public site does not run agents or the private Auditor service.
 
 ### Screenshots
 
@@ -186,7 +188,7 @@ services:
 ```
 
 1. Push the regenerated `public/` assets and `public/data/metrics.json` to `main`.
-2. Render auto-deploys [fire-drill.onrender.com](https://fire-drill.onrender.com).
+2. Deploy (or redeploy) the static service on Render so [fire-drill.onrender.com](https://fire-drill.onrender.com) picks up the commit. Auto-deploy may need the GitHub integration fully linked; otherwise trigger a manual deploy from the Render dashboard.
 3. To recreate it, choose **New → Blueprint**, select this repository, and apply `render.yaml`.
 
 The private `firedrill serve` API is intentionally **not deployed**. It binds to `127.0.0.1` and must retain its answer key on private persistent storage.
@@ -198,7 +200,7 @@ firedrill/                 Agents, adapters, metrics, executor, CLI
 canaries/library.yaml      MAST-tagged safe flaw templates
 switch/room-template.yaml  External-bot room definition
 scripts/                   Auditor setup and safe public export
-public/                    Static landing + live JSON dashboard
+public/                    Static 3D landing + live JSON dashboard
 public/data/metrics.json   Aggregate recorded-drill data
 public/report.md           Human-readable report
 demo/                      Answer-safe recorded event stream

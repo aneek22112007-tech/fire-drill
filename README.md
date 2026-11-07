@@ -22,7 +22,7 @@ Fire Drill runs real, safe work in a shared room. A Canary agent occasionally su
 - **Live product dashboard:** real exported metrics, MAST-mode detection, reviewer patterns, adaptation filtering, and explain-back triggers.
 - **Visual replay:** a short, honest replay of the recorded result—not a simulated backend or a new execution.
 
-> **What “live” means:** the public dashboard loads `public/data/metrics.json` from the latest offline demo export. It is recorded offline metrics served as a static site—not a live agent backend. The public site does not run agents or the private Auditor service.
+> **What “live” means:** the static site at fire-drill.onrender.com loads `public/data/metrics.json` from the recorded offline drill. The optional `firedrill web` service ([docs/LIVE_BACKEND.md](docs/LIVE_BACKEND.md)) adds a live API that runs the drill with server-side Grok calls; reviewers are still simulated and it is not a Switch room.
 
 ### Screenshots
 

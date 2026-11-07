@@ -14,3 +14,36 @@ services:
       - path: /*
         name: X-Frame-Options
         value: DENY
+
+  # Live API + site (FastAPI). Free plan: sleeps after 15 min idle, ~1 min wake,
+  # ephemeral disk (run history resets on restart/redeploy/spin-down).
+  # Not created until this Blueprint is synced in the Render dashboard.
+  - type: web
+    name: fire-drill-live
+    runtime: python
+    plan: free
+    repo: https://github.com/aneek22112007-tech/fire-drill
+    branch: main
+    buildCommand: "pip install -e ."  # editable: code reads public/, canaries/, sample_repo/ from the repo
+    startCommand: "firedrill web --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: XAI_API_KEY        # set in the dashboard; never commit
+        sync: false
+      - key: XAI_MODEL
+        value: grok-4.7
+      - key: FIREDRILL_ADMIN_TOKEN
+        generateValue: true
+      - key: FIREDRILL_DATA_DIR
+        value: /tmp/firedrill-live
+      - key: FIREDRILL_MAX_RUNS_PER_DAY
+        value: "10"
+      - key: FIREDRILL_RUN_COOLDOWN_SECONDS
+        value: "60"
+      - key: LLM_MAX_CALLS_PER_RUN
+        value: "60"
+      - key: LLM_MAX_TOKENS
+        value: "200"

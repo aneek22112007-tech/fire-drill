@@ -133,8 +133,9 @@ def build_recording(
     *,
     offline: bool,
     seed: int = SEED,
+    llm: LLM | None = None,
 ) -> tuple[list[dict[str, object]], dict[str, str]]:
-    events, canary_key = _build_recording(paths, offline=offline, seed=seed)
+    events, canary_key = _build_recording(paths, offline=offline, seed=seed, llm=llm)
     return events, canary_key
 
 
@@ -148,6 +149,7 @@ def _build_recording(
     *,
     offline: bool,
     seed: int,
+    llm: LLM | None = None,
 ) -> tuple[list[dict[str, object]], dict[str, str]]:
     flaws = load_library(paths.library)
     if len(flaws) != CANARY_ITEMS:
@@ -167,7 +169,8 @@ def _build_recording(
                 used.add(request_id)
                 return request_id
 
-    llm = LLM(offline=True if offline else None)
+    if llm is None:
+        llm = LLM(offline=True if offline else None)
     version = read_version(paths.sample_repo)
     kind_i = 0
     flag_n = 0
@@ -320,8 +323,8 @@ def _build_recording(
     return events, canary_key
 
 
-def run_demo(paths: DrillPaths, *, offline: bool) -> str:
-    events, canary_key = build_recording(paths, offline=offline)
+def run_demo(paths: DrillPaths, *, offline: bool, llm: LLM | None = None) -> str:
+    events, canary_key = build_recording(paths, offline=offline, llm=llm)
     write_events(paths.recorded, events)
     write_recorded_key(paths, canary_key)
     return play(paths, read_events(paths.recorded), canary_key=canary_key)

@@ -15,7 +15,7 @@
       if (!r.ok) return;
       const h = await r.json();
       panel.hidden = false;
-      text(status, `${h.live_llm_available ? `Grok ready (${h.model})` : 'no provider key: offline only'} · ${h.runs_enabled ? 'runs enabled' : 'runs disabled'}${h.active_run ? ` · running ${h.active_run}` : ''}`);
+      text(status, `${h.live_llm_available ? `${h.provider} ready (${h.model})` : 'no provider key: offline only'} · ${h.runs_enabled ? 'runs enabled' : 'runs disabled'}${h.active_run ? ` · running ${h.active_run}` : ''}`);
     } catch (_) { /* static site */ }
   }
 

@@ -11,8 +11,33 @@
 
 ## Modes
 
-- **live-llm**: each of the 50 real Worker proposals is rewritten by xAI Grok
-  (`XAI_API_KEY`, `XAI_MODEL`, `XAI_BASE_URL`, OpenAI-compatible chat completions).
+- **live-llm**: each of the 50 real Worker proposals is rewritten by an
+  OpenAI-compatible chat completions provider. Config: `LLM_API_KEY`, `LLM_BASE_URL`,
+  `LLM_MODEL`, optional `LLM_PROVIDER` label; each falls back to `XAI_*`.
+
+### Free option: Groq
+
+No card needed for the free tier (see console.groq.com/docs/rate-limits; limits change):
+
+```
+LLM_PROVIDER=groq
+LLM_BASE_URL=https://api.groq.com/openai/v1
+LLM_MODEL=<a model listed at console.groq.com/docs/models>
+LLM_API_KEY=<set in Render dashboard / secret store only>
+LLM_MIN_INTERVAL_SECONDS=4     # 15 req/min, under a 30 RPM limit
+LLM_MAX_RETRIES=2
+LLM_RETRY_AFTER_CAP_SECONDS=20
+LLM_MAX_CALLS_PER_RUN=60       # retries count against this
+```
+
+A run makes 50 calls, so at 4 s spacing it takes about 3–4 minutes.
+
+### Rate limits and retries
+
+HTTP 429 and 5xx are retried at most `LLM_MAX_RETRIES` times (≤5). `Retry-After` is
+honoured but capped at `LLM_RETRY_AFTER_CAP_SECONDS` (≤60); otherwise backoff is 2 s, 4 s, ….
+`LLM_MIN_INTERVAL_SECONDS` (≤30) spaces calls. Every attempt counts toward
+`LLM_MAX_CALLS_PER_RUN`.
 - **offline-template**: same drill, no network calls. Labelled as such everywhere.
 
 Reviewers are **simulated** (Avery, Blake, Casey) in both modes, and the API reports

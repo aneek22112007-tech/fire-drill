@@ -30,7 +30,7 @@
         const live = await fetch('/api/metrics/latest', { cache: 'no-store' });
         if (live.ok) {
           data = await live.json();
-          label = data.source === 'live-llm' ? `Live API · Grok run ${data.drill?.id || ''}` : `Live API · offline-template run ${data.drill?.id || ''}`;
+          label = data.source === 'live-llm' ? `Live API · LLM run (${data.run?.provider || 'llm'}) ${data.drill?.id || ''}` : `Live API · offline-template run ${data.drill?.id || ''}`;
         }
       } catch (_) { /* static hosting: no API */ }
       if (!data) {

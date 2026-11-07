@@ -1,6 +1,6 @@
 """Public Fire Drill web service: the static site plus a small live API.
 
-Live mode runs the drill with server-side Grok calls (``XAI_API_KEY``).
+Live mode runs the drill with server-side LLM calls (``LLM_API_KEY``/``XAI_API_KEY``).
 Offline mode runs the same drill with templates and is labelled as such.
 Simulated reviewers stay simulated: this is not a Switch room.
 
@@ -121,7 +121,7 @@ class RunManager:
         offline = mode == "offline"
         llm = LLM(offline=offline)
         if not offline and llm.offline:
-            raise HTTPException(503, "live mode needs XAI_API_KEY on the server; use mode=offline")
+            raise HTTPException(503, "live mode needs LLM_API_KEY (or XAI_API_KEY) on the server; use mode=offline")
         now = time.time()
         with self.lock:
             if self.active:
@@ -140,7 +140,7 @@ class RunManager:
         run: dict[str, object] = {
             "id": run_id,
             "mode": "live-llm" if not offline else "offline-template",
-            "provider": None if offline else "xai",
+            "provider": None if offline else llm.provider,
             "model": None if offline else llm.model,
             "status": "running",
             "created_at": _now(),
@@ -242,7 +242,7 @@ def create_app(data_dir: Path | None = None, drill: DrillFn = _default_drill, st
         return {
             "ok": True,
             "live_llm_available": not llm.offline,
-            "provider": "xai",
+            "provider": llm.provider,
             "model": llm.model,
             "runs_enabled": bool(os.environ.get("FIREDRILL_ADMIN_TOKEN", "").strip()),
             "active_run": manager.active,

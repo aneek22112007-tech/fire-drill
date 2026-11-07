@@ -157,7 +157,9 @@ def test_concurrency_cooldown_and_cap(env, tmp_path):
     wait(client, first.json()["id"])
     env.setenv("FIREDRILL_MAX_RUNS_PER_DAY", "1")
     capped = TestClient(create_app(tmp_path / "b", drill=lambda *a: None))
-    assert capped.post("/api/runs", json={"mode": "offline"}, headers=h).status_code == 202
+    one = capped.post("/api/runs", json={"mode": "offline"}, headers=h)
+    assert one.status_code == 202
+    wait(capped, one.json()["id"])
     assert capped.post("/api/runs", json={"mode": "offline"}, headers=h).status_code == 429
 
 
@@ -168,3 +170,85 @@ def test_static_site_served_with_headers(env, tmp_path):
     assert r.headers["x-frame-options"] == "DENY"
     assert client.get("/js/live.js").status_code == 200
     assert client.get("/auditor_private/key.json").status_code == 404
+
+
+def _seq(*responses):
+    it = iter(responses)
+    return provider(lambda request: next(it))
+
+
+def _ok(text="done"):
+    return httpx.Response(200, json={"choices": [{"message": {"content": text}}]})
+
+
+def test_generic_env_overrides_xai(env):
+    env.setenv("XAI_API_KEY", "old")
+    env.setenv("LLM_API_KEY", SECRET)
+    env.setenv("LLM_BASE_URL", "https://api.groq.com/openai/v1/")
+    env.setenv("LLM_MODEL", "some-model")
+    env.setenv("LLM_PROVIDER", "groq")
+    seen = {}
+
+    def handler(request):
+        seen["url"] = str(request.url)
+        seen["auth"] = request.headers["authorization"]
+        seen["model"] = json.loads(request.content)["model"]
+        return _ok()
+
+    llm = LLM(client=provider(handler))
+    assert llm.complete("s", "u") == "done"
+    assert seen == {"url": "https://api.groq.com/openai/v1/chat/completions", "auth": f"Bearer {SECRET}", "model": "some-model"}
+    assert llm.provider == "groq" and SECRET not in repr(llm)
+
+
+def test_429_retry_after_is_honoured_and_capped(env):
+    env.setenv("LLM_API_KEY", SECRET)
+    env.setenv("LLM_RETRY_AFTER_CAP_SECONDS", "5")
+    sleeps = []
+    llm = LLM(client=_seq(httpx.Response(429, headers={"retry-after": "3"}), httpx.Response(429, headers={"retry-after": "999"}), _ok()), sleep=sleeps.append)
+    assert llm.complete("s", "u") == "done"
+    assert sleeps == [3.0, 5.0] and llm.calls == 3
+
+
+def test_retries_are_bounded_and_spend_budget(env):
+    env.setenv("LLM_API_KEY", SECRET)
+    env.setenv("LLM_MAX_RETRIES", "1")
+    sleeps = []
+    llm = LLM(client=_seq(httpx.Response(503), httpx.Response(503)), sleep=sleeps.append)
+    with pytest.raises(LLMError, match="HTTP 503"):
+        llm.complete("s", "u")
+    assert llm.calls == 2 and sleeps == [2.0]
+    env.setenv("LLM_MAX_RETRIES", "5")
+    env.setenv("LLM_MAX_CALLS_PER_RUN", "2")
+    llm = LLM(client=_seq(*[httpx.Response(429)] * 5), sleep=lambda s: None)
+    with pytest.raises(LLMError, match="budget"):
+        llm.complete("s", "u")
+    assert llm.calls == 2
+
+
+def test_min_interval_spaces_calls(env):
+    env.setenv("LLM_API_KEY", SECRET)
+    env.setenv("LLM_MIN_INTERVAL_SECONDS", "4")
+    now = [100.0]
+    sleeps = []
+
+    def sleep(s):
+        sleeps.append(round(s, 3))
+        now[0] += s
+
+    llm = LLM(client=_seq(_ok(), _ok()), sleep=sleep, clock=lambda: now[0])
+    llm.complete("s", "a")
+    now[0] += 1.0
+    llm.complete("s", "b")
+    assert sleeps == [3.0]
+
+
+def test_live_run_reports_configured_provider(env, tmp_path):
+    env.setenv("LLM_API_KEY", SECRET)
+    env.setenv("LLM_PROVIDER", "groq")
+    client = TestClient(create_app(tmp_path, drill=mocked_drill(ok_handler)))
+    assert client.get("/api/health").json()["provider"] == "groq"
+    r = client.post("/api/runs", json={"mode": "live"}, headers={"Authorization": f"Bearer {ADMIN}"})
+    run = wait(client, r.json()["id"])
+    assert run["status"] == "succeeded" and run["provider"] == "groq"
+    assert SECRET not in all_text(client, run["id"])

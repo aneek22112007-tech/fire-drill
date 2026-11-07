@@ -229,9 +229,9 @@
         <div class="data-notice"><svg><use href="#i-info"/></svg><span><strong>Recorded drill, real metrics.</strong> Every number below is computed from the offline demo and loaded from <a href="data/metrics.json" target="_blank">metrics.json</a>. No canary was executed.</span><span class="data-updated" data-updated>Snapshot loaded</span></div>
         <section class="live-panel" data-live-panel hidden aria-label="Live backend">
           <div class="live-head"><span class="status-dot teal"></span><strong>Live backend</strong><span data-live-status>checking…</span></div>
-          <p class="live-note">Runs the drill on the server. <b>live</b> rewrites every real Worker proposal with Grok; <b>offline</b> uses templates. Reviewers are simulated — this is not a Switch room. Canaries are never executed.</p>
+          <p class="live-note">Runs the drill on the server. <b>live</b> rewrites every real Worker proposal with the configured LLM provider; <b>offline</b> uses templates. Reviewers are simulated — this is not a Switch room. Canaries are never executed.</p>
           <form class="live-form" data-live-form autocomplete="off">
-            <select name="mode" aria-label="Run mode"><option value="live">live (Grok)</option><option value="offline">offline (templates)</option></select>
+            <select name="mode" aria-label="Run mode"><option value="live">live (LLM)</option><option value="offline">offline (templates)</option></select>
             <input name="token" type="password" placeholder="Admin token" aria-label="Admin token" maxlength="200" required>
             <button class="button button-small button-primary" type="submit">Start drill</button>
           </form>

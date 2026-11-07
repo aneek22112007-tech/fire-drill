@@ -18,6 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;450;500;550;600;650;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/site.css">
   <script defer src="js/site.js"></script>
+  <script defer src="js/live.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
@@ -226,6 +227,16 @@
       <main class="dashboard-main" id="dashboard-main">
         <div class="dashboard-titlebar"><div><div class="dashboard-kicker"><span class="status-dot teal"></span> DRILL 001 <i>/</i> RECORDED OFFLINE RUN</div><h1>Oversight, measured.</h1><p>A live view of the exported report—not a live execution environment.</p></div><div class="dashboard-title-actions"><a class="button button-dark button-small" href="report.md" download><svg><use href="#i-download"/></svg>Export report</a><button class="button button-primary button-small" data-open-replay><svg><use href="#i-play"/></svg>Replay drill</button></div></div>
         <div class="data-notice"><svg><use href="#i-info"/></svg><span><strong>Recorded drill, real metrics.</strong> Every number below is computed from the offline demo and loaded from <a href="data/metrics.json" target="_blank">metrics.json</a>. No canary was executed.</span><span class="data-updated" data-updated>Snapshot loaded</span></div>
+        <section class="live-panel" data-live-panel hidden aria-label="Live backend">
+          <div class="live-head"><span class="status-dot teal"></span><strong>Live backend</strong><span data-live-status>checking…</span></div>
+          <p class="live-note">Runs the drill on the server. <b>live</b> rewrites every real Worker proposal with Grok; <b>offline</b> uses templates. Reviewers are simulated — this is not a Switch room. Canaries are never executed.</p>
+          <form class="live-form" data-live-form autocomplete="off">
+            <select name="mode" aria-label="Run mode"><option value="live">live (Grok)</option><option value="offline">offline (templates)</option></select>
+            <input name="token" type="password" placeholder="Admin token" aria-label="Admin token" maxlength="200" required>
+            <button class="button button-small button-primary" type="submit">Start drill</button>
+          </form>
+          <div class="live-run" data-live-run aria-live="polite"></div>
+        </section>
 
         <section class="dashboard-panel active" data-panel="overview" aria-label="Overview">
           <div class="metric-grid">

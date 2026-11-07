@@ -165,6 +165,20 @@ def serve(port: int = typer.Option(8765, "--port", help="Port on 127.0.0.1.")) -
     uvicorn.run(app_from_env, host=BIND_HOST, port=port, factory=True, log_level="info")
 
 
+@app.command()
+def web(
+    host: str = typer.Option("0.0.0.0", "--host"),
+    port: int = typer.Option(int(os.environ.get("PORT", "8000")), "--port"),
+) -> None:
+    """Serve the public site and live API (the private auditor is not exposed)."""
+
+    import uvicorn
+
+    from firedrill.web import app_from_env as web_app
+
+    uvicorn.run(web_app, host=host, port=port, factory=True, log_level="info", proxy_headers=True)
+
+
 @app.command("run-demo")
 def run_demo(offline: bool = typer.Option(False, "--offline", help="Use templates and do not call Grok.")) -> None:
     """Play 50 real items and 12 canaries with three simulated reviewers."""

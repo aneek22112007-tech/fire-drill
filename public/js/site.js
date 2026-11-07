@@ -24,13 +24,24 @@
     const refresh = $('[data-refresh]');
     refresh?.classList.add('spinning');
     try {
-      const response = await fetch(`data/metrics.json?v=${Date.now()}`, { cache: 'no-store' });
-      if (!response.ok) throw new Error(`Report request returned ${response.status}`);
-      const data = await response.json();
+      let data = null;
+      let label = 'Recorded offline drill (metrics.json)';
+      try {
+        const live = await fetch('/api/metrics/latest', { cache: 'no-store' });
+        if (live.ok) {
+          data = await live.json();
+          label = data.source === 'live-llm' ? `Live API · Grok run ${data.drill?.id || ''}` : `Live API · offline-template run ${data.drill?.id || ''}`;
+        }
+      } catch (_) { /* static hosting: no API */ }
+      if (!data) {
+        const response = await fetch(`data/metrics.json?v=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`Report request returned ${response.status}`);
+        data = await response.json();
+      }
       if (data.schema_version !== 1 || !data.canaries || !Array.isArray(data.reviewers)) throw new Error('Unexpected report schema');
       state.metrics = data;
       renderDashboard();
-      setConnection(true, 'JSON report connected');
+      setConnection(true, label);
       if (showFeedback) toast('Dashboard refreshed from the latest public export.');
     } catch (_) {
       if (!state.metrics) state.metrics = readFallback();
